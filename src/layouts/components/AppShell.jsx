@@ -73,6 +73,7 @@ export default function AppShell({ navItems = [] }) {
             <NavLink
               key={item.path}
               to={item.path}
+              end
               className={({ isActive }) =>
                 `flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ` +
                 (isActive
