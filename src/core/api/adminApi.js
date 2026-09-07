@@ -26,6 +26,56 @@ export async function fetchModulos() {
   return data
 }
 
+/** Registra un nuevo usuario administrativo dentro de la cooperativa. */
+export async function registrarUsuario(datosUsuario) {
+  const { data } = await client.post('/admin/usuarios', datosUsuario)
+  return data
+}
+
+export async function listUsuarios({ estado } = {}) {
+  const { data } = await client.get('/admin/usuarios', { params: estado ? { estado } : undefined })
+  return data
+}
+
+export async function updateUsuario(id, payload) {
+  const { data } = await client.put(`/admin/usuarios/${id}`, payload)
+  return data
+}
+
+export async function deactivateUsuario(id) {
+  const { data } = await client.delete(`/admin/usuarios/${id}`)
+  return data
+}
+
+export async function reactivateUsuario(id) {
+  const { data } = await client.post(`/admin/usuarios/${id}/reactivar`)
+  return data
+}
+
+export async function listRoles() {
+  const { data } = await client.get('/admin/roles')
+  return data
+}
+
+export async function createRole(payload) {
+  const { data } = await client.post('/admin/roles', payload)
+  return data
+}
+
+export async function updateRole(id, payload) {
+  const { data } = await client.put(`/admin/roles/${id}`, payload)
+  return data
+}
+
+export async function deleteRole(id) {
+  await client.delete(`/admin/roles/${id}`)
+}
+
+export async function listPermisos() {
+  const { data } = await client.get('/admin/permisos')
+  return data
+}
+
 /** Registra un nuevo socio (KYC). */
 export async function registrarSocio(datosSocio) {
   const { data } = await client.post('/socios/registro', datosSocio)

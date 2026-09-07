@@ -1,5 +1,5 @@
-import ModulePlaceholder from '../../../shared/components/ModulePlaceholder'
+import SavingsModulePage from '../../../shared/components/SavingsModulePage'
 
 export default function CajaPage() {
-  return <ModulePlaceholder title="Caja" />
+  return <SavingsModulePage />
 }
