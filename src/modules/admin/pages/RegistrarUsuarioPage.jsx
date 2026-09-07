@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { registrarUsuario } from '../../../core/api/adminApi'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Button from '../../../components/ui/Button'
+import PasswordInput from '../../../components/ui/PasswordInput'
+import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../../../core/utils/password'
 
 const FIELD_CLASS =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 ' +
@@ -95,7 +97,21 @@ export default function RegistrarUsuarioPage() {
 
           <div className="sm:col-span-2">
             <label htmlFor="contrasena" className="mb-1.5 block text-sm font-medium text-slate-700">Contraseña temporal</label>
-            <input id="contrasena" name="contrasena" type="password" required minLength={8} maxLength={128} value={form.contrasena} onChange={updateField} className={FIELD_CLASS} placeholder="Mínimo 8 caracteres" disabled={isLoading} />
+            <PasswordInput
+              id="contrasena"
+              name="contrasena"
+              required
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={128}
+              pattern={PASSWORD_PATTERN}
+              title={PASSWORD_HINT}
+              value={form.contrasena}
+              onChange={updateField}
+              className={FIELD_CLASS}
+              placeholder={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres`}
+              disabled={isLoading}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">{PASSWORD_HINT}</p>
           </div>
         </div>
 

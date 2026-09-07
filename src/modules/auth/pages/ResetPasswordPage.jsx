@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { confirmPasswordReset } from '../../../core/api/authApi'
 import Button from '../../../components/ui/Button'
 import AlertBanner from '../../../components/ui/AlertBanner'
+import PasswordInput from '../../../components/ui/PasswordInput'
+import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, isPasswordValid } from '../../../core/utils/password'
 
 function BrandMark() {
   return (
@@ -24,38 +26,17 @@ function BrandMark() {
   )
 }
 
-function EyeIcon({ open }) {
-  if (open) {
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    )
-  }
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  )
-}
-
 const FIELD_CLASS =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 ' +
   'placeholder-slate-400 outline-none transition duration-150 ' +
   'focus:border-navy focus:ring-2 focus:ring-navy/20 ' +
   'disabled:bg-slate-50 disabled:text-slate-400'
 
-const PASSWORD_MIN = 6
-
 function getPasswordStrength(pwd) {
   if (!pwd) return { score: 0, label: '—', color: 'bg-slate-200' }
   let score = 0
-  if (pwd.length >= PASSWORD_MIN) score++
-  if (pwd.length >= 10) score++
+  if (pwd.length >= 6) score++
+  if (pwd.length >= PASSWORD_MIN_LENGTH) score++
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++
   if (/\d/.test(pwd)) score++
   if (/[^A-Za-z0-9]/.test(pwd)) score++
@@ -77,8 +58,6 @@ export default function ResetPasswordPage() {
 
   const [nueva,             setNueva]            = useState('')
   const [confirmacion,      setConfirmacion]     = useState('')
-  const [mostrarNueva,      setMostrarNueva]     = useState(false)
-  const [mostrarConf,       setMostrarConf]      = useState(false)
   const [submitting,        setSubmitting]       = useState(false)
   const [success,           setSuccess]          = useState(false)
   const [errorMessage,      setErrorMessage]     = useState(null)
@@ -94,8 +73,8 @@ export default function ResetPasswordPage() {
       setErrorMessage('El enlace de recuperación no es válido.')
       return
     }
-    if (nueva.length < PASSWORD_MIN) {
-      setErrorMessage(`La contraseña debe tener al menos ${PASSWORD_MIN} caracteres.`)
+    if (!isPasswordValid(nueva)) {
+      setErrorMessage(PASSWORD_HINT)
       return
     }
     if (nueva !== confirmacion) {
@@ -156,31 +135,20 @@ export default function ResetPasswordPage() {
             >
               Nueva contraseña
             </label>
-            <div className="relative">
-              <input
-                id="nueva"
-                type={mostrarNueva ? 'text' : 'password'}
-                autoComplete="new-password"
-                required
-                minLength={PASSWORD_MIN}
-                value={nueva}
-                onChange={(e) => setNueva(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                className={`${FIELD_CLASS} pr-11`}
-                disabled={submitting}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarNueva((v) => !v)}
-                disabled={submitting}
-                aria-label={mostrarNueva ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                aria-pressed={mostrarNueva}
-                title={mostrarNueva ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-slate-400 transition hover:text-navy focus:outline-none focus-visible:text-navy disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <EyeIcon open={mostrarNueva} />
-              </button>
-            </div>
+            <PasswordInput
+              id="nueva"
+              autoComplete="new-password"
+              required
+              minLength={PASSWORD_MIN_LENGTH}
+              pattern={PASSWORD_PATTERN}
+              title={PASSWORD_HINT}
+              value={nueva}
+              onChange={(e) => setNueva(e.target.value)}
+              placeholder={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres`}
+              className={FIELD_CLASS}
+              disabled={submitting}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">{PASSWORD_HINT}</p>
             {nueva && (
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
@@ -204,30 +172,16 @@ export default function ResetPasswordPage() {
             >
               Confirmar contraseña
             </label>
-            <div className="relative">
-              <input
-                id="confirmacion"
-                type={mostrarConf ? 'text' : 'password'}
-                autoComplete="new-password"
-                required
-                value={confirmacion}
-                onChange={(e) => setConfirmacion(e.target.value)}
-                placeholder="••••••••"
-                className={`${FIELD_CLASS} pr-11`}
-                disabled={submitting}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarConf((v) => !v)}
-                disabled={submitting}
-                aria-label={mostrarConf ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                aria-pressed={mostrarConf}
-                title={mostrarConf ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-slate-400 transition hover:text-navy focus:outline-none focus-visible:text-navy disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <EyeIcon open={mostrarConf} />
-              </button>
-            </div>
+            <PasswordInput
+              id="confirmacion"
+              autoComplete="new-password"
+              required
+              value={confirmacion}
+              onChange={(e) => setConfirmacion(e.target.value)}
+              placeholder="••••••••"
+              className={FIELD_CLASS}
+              disabled={submitting}
+            />
           </div>
 
           {errorMessage && (
