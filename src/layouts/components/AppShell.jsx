@@ -61,7 +61,7 @@ export default function AppShell({ navItems = [] }) {
             <p className="text-base font-bold tracking-tight text-white leading-none">
               CoopIA
             </p>
-            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-forest-fg/60">
+            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-coopia-green-fg/60">
               Cooperativa de Ahorro
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function AppShell({ navItems = [] }) {
                 `flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ` +
                 (isActive
                   ? 'bg-forest-2 text-white border-l-2 border-emerald-400 pl-[10px]'
-                  : 'text-forest-fg/70 hover:bg-forest-2/50 hover:text-forest-fg')
+                  : 'text-coopia-green-fg/70 hover:bg-coopia-green-light/50 hover:text-forest-fg')
               }
             >
               {item.label}

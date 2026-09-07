@@ -6,7 +6,6 @@ const NAV_ITEMS = [
   { label: 'Usuarios', path: '/admin/usuarios' },
   { label: 'Roles y permisos', path: '/admin/roles' },
   { label: 'Socios', path: '/admin/socios' },
-  { label: 'Ahorros y aportes', path: '/admin/caja' },
   { label: 'Créditos', path: '/admin/creditos' },
   { label: 'Caja', path: '/admin/caja' },
   { label: 'Reportes', path: '/admin/reportes' },
