@@ -30,6 +30,9 @@ import AdminDashboardPage from '../modules/admin/pages/DashboardPage'
 import AdminReportesPage from '../modules/admin/pages/ReportesPage'
 import AdminSociosPage from '../modules/admin/pages/SociosPage'
 import RegistrarSocioPage from '../modules/admin/pages/RegistrarSocio'
+import RegistrarUsuarioPage from '../modules/admin/pages/RegistrarUsuarioPage'
+import UsuariosPage from '../modules/admin/pages/UsuariosPage'
+import RolesPage from '../modules/admin/pages/RolesPage'
 
 // ── Asesor (legacy alias) ─────────────────────────────────────
 import AsesorCajaPage from '../modules/asesor/pages/CajaPage'
@@ -87,6 +90,9 @@ export default function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="bitacora" element={<AdminDashboardPage />} />
+            <Route path="usuarios/nuevo" element={<RegistrarUsuarioPage />} />
+            <Route path="usuarios" element={<UsuariosPage />} />
+            <Route path="roles" element={<RolesPage />} />
             <Route path="socios" element={<AdminSociosPage />} />
             <Route path="socios/nuevo" element={<RegistrarSocioPage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
