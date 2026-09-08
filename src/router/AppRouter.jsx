@@ -23,6 +23,7 @@ import SuperAdminCooperativasPage from '../modules/superadmin/pages/Cooperativas
 import SuperAdminBitacoraPage from '../modules/superadmin/pages/BitacoraPage'
 
 // ── Admin ─────────────────────────────────────────────────────
+import AdminBitacoraPage from '../modules/admin/pages/BitacoraPage'
 import AdminCajaPage from '../modules/admin/pages/CajaPage'
 import AdminConfiguracionPage from '../modules/admin/pages/ConfiguracionPage'
 import AdminCreditosPage from '../modules/admin/pages/CreditosPage'
@@ -89,7 +90,7 @@ export default function AppRouter() {
           <Route element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="bitacora" element={<AdminDashboardPage />} />
+            <Route path="bitacora" element={<AdminBitacoraPage />} />
             <Route path="usuarios/nuevo" element={<RegistrarUsuarioPage />} />
             <Route path="usuarios" element={<UsuariosPage />} />
             <Route path="roles" element={<RolesPage />} />

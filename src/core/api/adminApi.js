@@ -87,9 +87,11 @@ export async function registrarSocio(datosSocio) {
  * @param {Object} params
  * @param {number} [params.limite=50]
  * @param {number} [params.offset=0]
+ * @param {string} [params.estado] - Filtrar por estado (ACTIVO/INACTIVO)
  */
-export async function fetchSocios({ limite = 50, offset = 0 } = {}) {
+export async function fetchSocios({ limite = 50, offset = 0, estado } = {}) {
   const params = { limite, offset }
+  if (estado) params.estado = estado
   const { data } = await client.get('/socios/', { params })
   return data
 }

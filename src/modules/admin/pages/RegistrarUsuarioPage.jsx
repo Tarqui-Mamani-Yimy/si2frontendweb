@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { registrarUsuario } from '../../../core/api/adminApi'
+import { listCooperativas } from '../../../core/api/cooperativasApi'
+import { selectUser, useAuthStore } from '../../../core/store/authStore'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Button from '../../../components/ui/Button'
 import PasswordInput from '../../../components/ui/PasswordInput'
@@ -23,14 +25,35 @@ function errorMessage(error) {
 }
 
 export default function RegistrarUsuarioPage() {
+  const user = useAuthStore(selectUser)
+  const isSuperAdmin = user?.rol?.nombre === 'SUPERADMIN'
+  // Un SUPERADMIN siempre elige la cooperativa del nuevo usuario. Un
+  // ADMINISTRADOR que todavía no tiene cooperativa asignada (bootstrap de su
+  // tenant) también debe poder elegirla; uno que ya pertenece a una queda
+  // forzado a la suya en el backend, así que aquí no necesita el campo.
+  const canChooseCooperativa = isSuperAdmin || !user?.cooperativa_id
+
   const [form, setForm] = useState({
     nombre: '',
     correo: '',
     contrasena: '',
     rol: 'CAJERO',
+    cooperativa_id: '',
   })
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState(null)
+
+  const [cooperativas, setCooperativas] = useState([])
+  const [loadingCoops, setLoadingCoops] = useState(canChooseCooperativa)
+
+  useEffect(() => {
+    if (!canChooseCooperativa) return
+    setLoadingCoops(true)
+    listCooperativas({ estado: 'ACTIVO' })
+      .then(setCooperativas)
+      .catch(() => setCooperativas([]))
+      .finally(() => setLoadingCoops(false))
+  }, [canChooseCooperativa])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -42,10 +65,13 @@ export default function RegistrarUsuarioPage() {
     setStatus('loading')
     setMessage(null)
     try {
-      await registrarUsuario(form)
+      const payload = canChooseCooperativa
+        ? { ...form, cooperativa_id: Number(form.cooperativa_id) }
+        : { nombre: form.nombre, correo: form.correo, contrasena: form.contrasena, rol: form.rol }
+      await registrarUsuario(payload)
       setStatus('success')
       setMessage('Usuario registrado correctamente.')
-      setForm({ nombre: '', correo: '', contrasena: '', rol: 'CAJERO' })
+      setForm({ nombre: '', correo: '', contrasena: '', rol: 'CAJERO', cooperativa_id: '' })
     } catch (error) {
       setStatus('error')
       setMessage(errorMessage(error))
@@ -94,6 +120,33 @@ export default function RegistrarUsuarioPage() {
               {ROLES.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
             </select>
           </div>
+
+          {canChooseCooperativa && (
+            <div>
+              <label htmlFor="cooperativa_id" className="mb-1.5 block text-sm font-medium text-slate-700">Cooperativa</label>
+              <select
+                id="cooperativa_id"
+                name="cooperativa_id"
+                required
+                value={form.cooperativa_id}
+                onChange={updateField}
+                className={FIELD_CLASS}
+                disabled={isLoading || loadingCoops}
+              >
+                <option value="" disabled>
+                  {loadingCoops ? 'Cargando cooperativas…' : 'Selecciona una cooperativa'}
+                </option>
+                {cooperativas.map((coop) => (
+                  <option key={coop.id} value={coop.id}>{coop.nombre}</option>
+                ))}
+              </select>
+              {!loadingCoops && cooperativas.length === 0 && (
+                <p className="mt-1.5 text-xs text-amber-600">
+                  No hay cooperativas activas registradas. Crea una primero en Cooperativas.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="sm:col-span-2">
             <label htmlFor="contrasena" className="mb-1.5 block text-sm font-medium text-slate-700">Contraseña temporal</label>

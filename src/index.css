@@ -12,6 +12,14 @@
   --color-coopia-navy:         #111827;   /* azul marino casi negro — texto principal */
   --color-coopia-navy-soft:    #1f2937;   /* headers, subheadings */
 
+  /* Alias como tokens de color reales — habilita utilidades de gradiente
+     (from-forest/to-forest-2, from-navy/to-navy-2) que Tailwind v4 solo
+     genera a partir de variables --color-* declaradas en @theme. */
+  --color-forest:   var(--color-coopia-green);
+  --color-forest-2: var(--color-coopia-green-light);
+  --color-navy:     var(--color-coopia-navy);
+  --color-navy-2:   var(--color-coopia-navy-soft);
+
   --color-coopia-accent:       #F4C553;   /* oro suave — botones de acción primaria */
   --color-coopia-accent-hover: #e6b43e;   /* hover del dorado */
   --color-coopia-accent-fg:    #111827;   /* texto sobre botón dorado */
