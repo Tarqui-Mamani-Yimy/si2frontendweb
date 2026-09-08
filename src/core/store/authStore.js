@@ -11,6 +11,7 @@ const initialState = {
   error: null,
 }
 
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
