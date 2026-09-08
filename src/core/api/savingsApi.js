@@ -25,6 +25,11 @@ export async function retirar(cuentaId, monto) {
   return data
 }
 
+export async function updateCuentaEstado(cuentaId, estado) {
+  const { data } = await client.patch(`/ahorros/cuentas/${cuentaId}/estado`, { estado })
+  return data
+}
+
 export async function listCertificados(params = {}) {
   const { data } = await client.get('/ahorros/certificados', { params })
   return data
@@ -33,6 +38,21 @@ export async function listCertificados(params = {}) {
 export async function issueCertificado(payload) {
   const { data } = await client.post('/ahorros/certificados', payload)
   return data
+}
+
+export async function downloadCertificadoPdf(certificadoId) {
+  const response = await client.get(`/ahorros/certificados/${certificadoId}/pdf`, { responseType: 'blob' })
+  const disposition = response.headers['content-disposition'] ?? ''
+  const match = disposition.match(/filename="?([^"]+)"?/)
+  const filename = match ? match[1] : `certificado_${certificadoId}.pdf`
+  const url = window.URL.createObjectURL(response.data)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
 }
 
 export async function listMisCuentas() {
