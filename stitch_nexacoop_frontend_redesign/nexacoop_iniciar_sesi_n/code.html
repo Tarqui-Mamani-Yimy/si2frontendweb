@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Iniciar Sesión | NexaCoop Core Banking</title>
+<!-- Tipografías de Google -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Iconografía Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#064e3b",
+            "primary-hover": "#047857",
+            "primary-container": "#064e3b",
+            "secondary": "#006c49",
+            "secondary-fixed": "#6ffbbe",
+            "secondary-container": "#6cf8bb",
+            "background": "#f8f9ff",
+            "surface": "#f8f9ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#404944",
+            "outline": "#707974",
+            "outline-variant": "#bfc9c3"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f4f9;
+      background-image: radial-gradient(at 0% 0%, rgba(111, 251, 190, 0.15) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(6, 78, 59, 0.12) 0px, transparent 50%);
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-on-surface flex items-center justify-center p-4 sm:p-6 lg:p-8">
+<!-- Contenedor Maestro / Split Card -->
+<main class="w-full max-w-6xl bg-white rounded-2xl shadow-2xl border border-white/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
+<!-- ==============================================
+         PANEL IZQUIERDO: Bienvenida & Marca NexaCoop
+         ============================================== -->
+<section class="lg:col-span-5 bg-[#064e3b] text-white p-8 sm:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+<!-- Decoración geométrica institucional de fondo -->
+<div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none"></div>
+<div class="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-[#6ffbbe]/10 blur-3xl pointer-events-none"></div>
+<svg class="absolute inset-0 w-full h-full opacity-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="40" id="grid-pattern" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="1"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid-pattern)" height="100%" width="100%"></rect>
+</svg>
+<!-- Encabezado Izquierdo: Badge & Identidad de Marca -->
+<div class="relative z-10">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/60 border border-emerald-400/30 text-[#6ffbbe] text-xs font-semibold tracking-wider uppercase mb-8">
+<span class="w-1.5 h-1.5 rounded-full bg-[#6ffbbe] animate-pulse"></span>
+          Plataforma Multi-Tenant Fiduciaria
+        </div>
+<!-- Bloque de Logo / Mascota NexaCoop -->
+<div class="space-y-6">
+<div class="inline-block bg-black/30 backdrop-blur-md rounded-2xl p-3 border border-emerald-500/20 shadow-lg">
+<img alt="NexaCoop Logo" class="h-24 sm:h-28 w-auto object-contain rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaXMM1cZJ_TP3tDz3VhGW-SbWweB-fnsLwXgDqmbT32uQmamxWD0iSkHB9JtmQ8JWMY42ce-nUsBbR8vIes42Fbaf4q8coWolbyb7JOwVSgVb2t_9BZ0w0ouZ3xtT1mR2SBwKBMjngq0ClFcMvM4PAIsRuzEmBYXy7A_JzBCgkKq8NNHwalSQcO9OxxB7sgzm4aeSO67PAEaImLceZK1dJ9s3UYywT9GPyi003qzjgAJNAa0jV_56IXbzu_gEzPaaVcuk"/>
+</div>
+<div>
+<h2 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
+              Construyendo el futuro <br class="hidden sm:block"/>
+<span class="text-[#6ffbbe]">financiero cooperativo</span>.
+            </h2>
+<p class="mt-3 text-emerald-100/80 text-sm leading-relaxed max-w-sm">
+              Ecosistema bancario y administrativo diseñado para impulsar el crecimiento, la solidez y el impacto social de las cooperativas.
+            </p>
+</div>
+</div>
+</div>
+<!-- Zona Inferior: Badges de Seguridad Fiduciaria -->
+<div class="relative z-10 pt-8 mt-6 border-t border-emerald-800/80">
+<div class="grid grid-cols-3 gap-2.5 p-3 rounded-xl bg-emerald-950/40 border border-emerald-700/30 backdrop-blur-sm">
+<!-- Cifrado -->
+<div class="flex flex-col items-center text-center p-1">
+<span class="material-symbols-outlined text-[#6ffbbe] text-xl mb-1">lock</span>
+<span class="text-xs font-bold text-white tracking-tight">256-Bit</span>
+<span class="text-[10px] text-emerald-200/70 font-medium">Cifrado Militar</span>
+</div>
+<!-- Respaldo -->
+<div class="flex flex-col items-center text-center p-1 border-x border-emerald-800/50">
+<span class="material-symbols-outlined text-[#6ffbbe] text-xl mb-1">sync_saved_locally</span>
+<span class="text-xs font-bold text-white tracking-tight">100% Real-Time</span>
+<span class="text-[10px] text-emerald-200/70 font-medium">Respaldo Activo</span>
+</div>
+<!-- Regulación -->
+<div class="flex flex-col items-center text-center p-1">
+<span class="material-symbols-outlined text-[#6ffbbe] text-xl mb-1">verified_user</span>
+<span class="text-xs font-bold text-white tracking-tight">Regulado</span>
+<span class="text-[10px] text-emerald-200/70 font-medium">SUGEF / SBS</span>
+</div>
+</div>
+<!-- Versión del Core -->
+<div class="flex items-center justify-between mt-5 text-[11px] text-emerald-200/60 font-medium">
+<span>NexaCoop Core Banking v2.4.0</span>
+<span class="flex items-center gap-1.5 text-[#6ffbbe]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#6ffbbe]"></span>
+            Sistemas Operativos
+          </span>
+</div>
+</div>
+</section>
+<!-- ==============================================
+         PANEL DERECHO: Formulario de Autenticación
+         ============================================== -->
+<section class="lg:col-span-7 bg-[#ffffff] p-8 sm:p-10 lg:p-12 flex flex-col justify-between">
+<div>
+<!-- Cabecera del formulario -->
+<div class="flex items-start justify-between gap-4 mb-6">
+<div>
+<span class="text-[11px] font-bold tracking-widest text-emerald-800 uppercase">Portal Seguro de Acceso</span>
+<h1 class="font-display text-2xl sm:text-3xl font-bold text-slate-900 mt-1">Iniciar Sesión</h1>
+<p class="text-slate-500 text-sm mt-1">Ingrese sus credenciales corporativas autorizadas para continuar.</p>
+</div>
+<!-- Badge TLS -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 shrink-0">
+<span class="material-symbols-outlined text-[16px] text-emerald-700">shield</span>
+<span>TLS 1.3 Seguro</span>
+</div>
+</div>
+<!-- Formulario -->
+<form class="space-y-4" id="loginForm" onsubmit="event.preventDefault(); handleLoginSubmit();">
+<!-- Selector de Entorno Cooperativo Multi-Tenant -->
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5" for="tenantSelect">
+              Entorno Institucional / Cooperativa
+            </label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+</span>
+<select class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white outline-none transition appearance-none cursor-pointer" id="tenantSelect">
+<option value="sanjuan">Coop. de Ahorro y Crédito San Juan R.L.</option>
+<option value="alianza">Coop. Alianza Fiduciaria</option>
+<option value="progreso">Coop. Progreso Andino</option>
+<option value="nacional">Federación Nacional de Cooperativas</option>
+<option value="central">NexaCoop Matriz Central (Administración)</option>
+</select>
+<span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</span>
+</div>
+</div>
+<!-- Identificación / Correo Institucional -->
+<div>
+<label class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5" for="emailInput">
+              Identificación o Correo Institucional
+            </label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white outline-none transition" id="emailInput" placeholder="ej. carlos.mendoza@nexacoop.com" required="" type="text"/>
+</div>
+</div>
+<!-- Contraseña Fiduciaria -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-xs font-semibold uppercase tracking-wider text-slate-700" for="passwordInput">
+                Contraseña Fiduciaria
+              </label>
+<a class="text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition" href="#recuperar">
+                ¿Olvidó su contraseña?
+              </a>
+</div>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">key</span>
+</span>
+<input class="w-full pl-10 pr-11 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 focus:bg-white outline-none transition" id="passwordInput" placeholder="••••••••••••" required="" type="password"/>
+<button aria-label="Mostrar contraseña" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-700 transition" onclick="togglePasswordVisibility()" type="button">
+<span class="material-symbols-outlined text-[20px]" id="eyeIcon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Recordar Sesión Checkbox -->
+<div class="flex items-center pt-1">
+<label class="flex items-center gap-2.5 cursor-pointer select-none">
+<input class="w-4 h-4 rounded border-slate-300 text-emerald-800 focus:ring-emerald-700 focus:ring-offset-0 cursor-pointer" id="rememberMe" type="checkbox"/>
+<span class="text-xs sm:text-sm text-slate-600">Recordar sesión en esta estación autorizada</span>
+</label>
+</div>
+<!-- Botón de Envío Principal CTA -->
+<div class="pt-2">
+<button class="w-full py-3.5 px-6 rounded-lg bg-[#064e3b] hover:bg-[#047857] text-white font-display text-base font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99]" id="submitButton" type="submit">
+<span>Acceder al Sistema NexaCoop</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Separador de Hardware / MFA -->
+<div class="relative my-6">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-slate-200"></div>
+</div>
+<div class="relative flex justify-center text-[10px] tracking-wider uppercase font-bold text-slate-400">
+<span class="bg-white px-3">O valide con credencial de hardware</span>
+</div>
+</div>
+<!-- Botones Secundarios de Hardware / Token -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium transition active:scale-[0.99]" onclick="showFeedback('Solicitando autenticación vía Token MFA / OTP...')" type="button">
+<span class="material-symbols-outlined text-emerald-800 text-[18px]">phonelink_lock</span>
+<span>Token MFA / OTP</span>
+</button>
+<button class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-medium transition active:scale-[0.99]" onclick="showFeedback('Conectando con llave física FIDO2 / WebAuthn...')" type="button">
+<span class="material-symbols-outlined text-emerald-800 text-[18px]">usb</span>
+<span>Llave FIDO2 / USB</span>
+</button>
+</div>
+<!-- Banner Toast Informativo para Feedback Dinámico -->
+<div class="hidden mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2.5 transition" id="feedbackBanner">
+<span class="material-symbols-outlined text-[18px] text-emerald-700 shrink-0">info</span>
+<span id="feedbackText">Procesando solicitud fiduciaria...</span>
+</div>
+</div>
+<!-- Pie de Página Institucional -->
+<footer class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-emerald-700">support_agent</span>
+<span>Mesa de Ayuda: <strong class="text-slate-700 font-semibold">+506 2500-COOP</strong></span>
+</div>
+<div class="flex items-center gap-4">
+<a class="hover:text-emerald-800 hover:underline" href="#privacidad">Políticas de Privacidad</a>
+<span class="text-slate-300">•</span>
+<a class="hover:text-emerald-800 hover:underline" href="#garantia">Garantía Fiduciaria</a>
+</div>
+</footer>
+</section>
+</main>
+<!-- Script Inline Funcional y Autónomo -->
+<script>
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('passwordInput');
+      const eyeIcon = document.getElementById('eyeIcon');
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.textContent = 'visibility_off';
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.textContent = 'visibility';
+      }
+    }
+
+    function showFeedback(message) {
+      const banner = document.getElementById('feedbackBanner');
+      const text = document.getElementById('feedbackText');
+      text.textContent = message;
+      banner.classList.remove('hidden');
+      setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 4000);
+    }
+
+    function handleLoginSubmit() {
+      const email = document.getElementById('emailInput').value;
+      const tenant = document.getElementById('tenantSelect').selectedOptions[0].text;
+      const btn = document.getElementById('submitButton');
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[20px]">sync</span><span>Verificando credenciales...</span>`;
+
+      showFeedback(`Verificando acceso fiduciario para ${email} en "${tenant}"...`);
+
+      setTimeout(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">check_circle</span><span>Acceso Aprobado</span>`;
+        btn.classList.replace('bg-[#064e3b]', 'bg-[#047857]');
+        showFeedback('Autenticación validada exitosamente. Conectando con la bóveda fiduciaria...');
+
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.classList.replace('bg-[#047857]', 'bg-[#064e3b]');
+          btn.innerHTML = `<span>Acceder al Sistema NexaCoop</span><span class="material-symbols-outlined text-[20px]">arrow_forward</span>`;
+        }, 3000);
+      }, 1500);
+    }
+  </script>
+</body></html>

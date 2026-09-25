@@ -5,32 +5,13 @@ import Button from '../../../components/ui/Button'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import PasswordInput from '../../../components/ui/PasswordInput'
 import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, isPasswordValid } from '../../../core/utils/password'
-
-function BrandMark() {
-  return (
-    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-forest shadow-[0_4px_20px_rgba(26,71,49,0.4)]">
-      <svg width="32" height="32" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <path
-          d="M14 2L4 6.5V14c0 5.5 4 9.8 10 12 6-2.2 10-6.5 10-12V6.5L14 2Z"
-          fill="rgba(255,255,255,0.15)"
-          stroke="rgba(255,255,255,0.3)"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M14 8c0 0-5 2.5-5 7.5 0 2.5 2 4 5 5 3-1 5-2.5 5-5C19 10.5 14 8 14 8Z"
-          fill="#4ade80"
-          opacity="0.9"
-        />
-      </svg>
-    </div>
-  )
-}
+import castorAvatar from '../../../assets/screen copy.png'
 
 const FIELD_CLASS =
-  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 ' +
-  'placeholder-slate-400 outline-none transition duration-150 ' +
-  'focus:border-navy focus:ring-2 focus:ring-navy/20 ' +
-  'disabled:bg-slate-50 disabled:text-slate-400'
+  'w-full h-10 rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 text-sm text-[#0b1c30] ' +
+  'placeholder:text-slate-400 outline-none transition duration-150 ' +
+  'focus:border-[#006c49] focus:ring-2 focus:ring-[#006c49]/20 focus:bg-white ' +
+  'disabled:bg-slate-100 disabled:text-slate-400'
 
 function getPasswordStrength(pwd) {
   if (!pwd) return { score: 0, label: '—', color: 'bg-slate-200' }
@@ -86,7 +67,6 @@ export default function ResetPasswordPage() {
     try {
       await confirmPasswordReset({ token, nueva_contrasena: nueva })
       setSuccess(true)
-      // Redirige al login tras un breve delay para que el usuario vea el éxito
       setTimeout(() => navigate('/login', { replace: true }), 2500)
     } catch (error) {
       const status = error.response?.status
@@ -104,15 +84,17 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="w-full rounded-3xl bg-white/95 backdrop-blur-sm p-8 shadow-[0_24px_64px_rgba(0,0,0,0.25)]">
-      <BrandMark />
-
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Crear nueva contraseña
+    <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl border border-white/80 animate-slide-up">
+      {/* Brand Header */}
+      <div className="flex flex-col items-center mb-6 text-center">
+        <div className="h-16 w-16 rounded-2xl bg-[#064e3b] p-1 border border-emerald-400/30 shadow-md mb-3 flex items-center justify-center overflow-hidden">
+          <img src={castorAvatar} alt="NexaCoop Logo" className="w-full h-full object-cover rounded-xl" />
+        </div>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+          Nueva Contraseña
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Ingresa y confirma tu nueva contraseña.
+          Establezca su nueva contraseña corporativa autorizada.
         </p>
       </div>
 
@@ -122,16 +104,16 @@ export default function ResetPasswordPage() {
           pantalla de inicio de sesión.
         </AlertBanner>
       ) : success ? (
-        <AlertBanner variant="success" title="¡Contraseña actualizada!">
-          Te redirigiremos al inicio de sesión en unos segundos.
+        <AlertBanner variant="success" title="¡Contraseña fiduciaria actualizada!">
+          Te redirigiremos al portal de inicio de sesión en unos segundos.
         </AlertBanner>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Nueva contraseña */}
           <div>
             <label
               htmlFor="nueva"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700"
             >
               Nueva contraseña
             </label>
@@ -148,7 +130,7 @@ export default function ResetPasswordPage() {
               className={FIELD_CLASS}
               disabled={submitting}
             />
-            <p className="mt-1.5 text-xs text-slate-500">{PASSWORD_HINT}</p>
+            <p className="mt-1 text-[11px] text-slate-500">{PASSWORD_HINT}</p>
             {nueva && (
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
@@ -157,7 +139,7 @@ export default function ResetPasswordPage() {
                     style={{ width: `${(strength.score / 5) * 100}%` }}
                   />
                 </div>
-                <span className="text-[11px] font-medium text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-600">
                   {strength.label}
                 </span>
               </div>
@@ -168,7 +150,7 @@ export default function ResetPasswordPage() {
           <div>
             <label
               htmlFor="confirmacion"
-              className="mb-1.5 block text-sm font-medium text-slate-700"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700"
             >
               Confirmar contraseña
             </label>
@@ -178,17 +160,14 @@ export default function ResetPasswordPage() {
               required
               value={confirmacion}
               onChange={(e) => setConfirmacion(e.target.value)}
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               className={FIELD_CLASS}
               disabled={submitting}
             />
           </div>
 
           {errorMessage && (
-            <AlertBanner
-              variant="error"
-              onClose={() => setErrorMessage(null)}
-            >
+            <AlertBanner variant="error" onClose={() => setErrorMessage(null)}>
               {errorMessage}
             </AlertBanner>
           )}
@@ -198,24 +177,25 @@ export default function ResetPasswordPage() {
             variant="primary"
             size="lg"
             loading={submitting}
-            className="w-full bg-forest hover:bg-forest-2 focus-visible:ring-forest"
+            className="w-full bg-[#064e3b] hover:bg-[#0c4f30] text-white"
           >
-            {submitting ? 'Guardando…' : 'Guardar nueva contraseña'}
+            {submitting ? 'Guardando credenciales…' : 'Guardar nueva contraseña'}
           </Button>
         </form>
       )}
 
-      <div className="mt-6 text-center text-sm text-slate-500">
+      <div className="mt-6 text-center text-sm text-slate-500 border-t border-slate-100 pt-4">
         <Link
           to="/login"
-          className="font-medium text-navy hover:text-navy-2 hover:underline"
+          className="font-semibold text-emerald-700 hover:text-emerald-900 transition flex items-center justify-center gap-1"
         >
-          ← Volver a iniciar sesión
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Volver al inicio de sesión</span>
         </Link>
       </div>
 
-      <p className="mt-6 text-center text-[11px] text-slate-400">
-        CoopIA © {new Date().getFullYear()} · Sistema protegido
+      <p className="mt-5 text-center text-[11px] text-slate-400">
+        NexaCoop Core Banking · Sistema protegido
       </p>
     </div>
   )

@@ -1,41 +1,45 @@
 /**
- * AlertBanner — banner de feedback (error / éxito / info / warning).
+ * AlertBanner — banner de retroalimentación fiduciaria NexaCoop.
  *
  * Props:
  *   variant: 'error' | 'success' | 'info' | 'warning'
  *   title:   string (opcional)
- *   onClose: función (opcional — muestra ×)
+ *   onClose: función (opcional)
  *   children: contenido del mensaje
  */
 
 const CONFIG = {
   error: {
-    wrap:  'border-red-200   bg-red-50',
-    icon:  '⚠️',
-    title: 'text-red-800',
-    body:  'text-red-700',
-    close: 'text-red-400 hover:text-red-600',
+    wrap:  'border-[#fecaca] bg-[#fef2f2] text-[#991b1b]',
+    icon:  'error',
+    iconColor: 'text-[#dc2626]',
+    title: 'text-[#991b1b]',
+    body:  'text-[#b91c1c]',
+    close: 'text-[#ef4444] hover:text-[#991b1b]',
   },
   success: {
-    wrap:  'border-emerald-200 bg-emerald-50',
-    icon:  '✅',
-    title: 'text-emerald-800',
-    body:  'text-emerald-700',
-    close: 'text-emerald-400 hover:text-emerald-600',
+    wrap:  'border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]',
+    icon:  'check_circle',
+    iconColor: 'text-[#059669]',
+    title: 'text-[#065f46]',
+    body:  'text-[#047857]',
+    close: 'text-[#10b981] hover:text-[#065f46]',
   },
   info: {
-    wrap:  'border-blue-200  bg-blue-50',
-    icon:  'ℹ️',
-    title: 'text-blue-800',
-    body:  'text-blue-700',
-    close: 'text-blue-400 hover:text-blue-600',
+    wrap:  'border-[#bae6fd] bg-[#f0f9ff] text-[#075985]',
+    icon:  'info',
+    iconColor: 'text-[#0284c7]',
+    title: 'text-[#075985]',
+    body:  'text-[#0369a1]',
+    close: 'text-[#38bdf8] hover:text-[#075985]',
   },
   warning: {
-    wrap:  'border-amber-200 bg-amber-50',
-    icon:  '⚡',
-    title: 'text-amber-800',
-    body:  'text-amber-700',
-    close: 'text-amber-400 hover:text-amber-600',
+    wrap:  'border-[#fde68a] bg-[#fffbeb] text-[#92400e]',
+    icon:  'warning',
+    iconColor: 'text-[#d97706]',
+    title: 'text-[#92400e]',
+    body:  'text-[#b45309]',
+    close: 'text-[#f59e0b] hover:text-[#92400e]',
   },
 }
 
@@ -51,25 +55,25 @@ export default function AlertBanner({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 rounded-2xl border px-5 py-4 animate-slide-up ${c.wrap} ${className}`}
+      className={`flex items-start gap-3 rounded-xl border p-4 animate-slide-up shadow-xs ${c.wrap} ${className}`}
     >
-      <span className="mt-0.5 shrink-0 text-base leading-none" aria-hidden="true">
+      <span className={`material-symbols-outlined text-[20px] shrink-0 mt-0.5 ${c.iconColor}`} aria-hidden="true">
         {c.icon}
       </span>
       <div className="flex-1 min-w-0">
         {title && (
-          <p className={`text-sm font-semibold ${c.title}`}>{title}</p>
+          <p className={`text-sm font-semibold font-display tracking-tight ${c.title}`}>{title}</p>
         )}
-        <div className={`text-sm ${title ? 'mt-0.5' : ''} ${c.body}`}>{children}</div>
+        <div className={`text-sm leading-relaxed ${title ? 'mt-0.5' : ''} ${c.body}`}>{children}</div>
       </div>
       {onClose && (
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar"
-          className={`shrink-0 text-lg leading-none transition ${c.close}`}
+          className={`shrink-0 p-1 rounded-md text-lg leading-none transition hover:bg-black/5 ${c.close}`}
         >
-          ×
+          <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
       )}
     </div>
