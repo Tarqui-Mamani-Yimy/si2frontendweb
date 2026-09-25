@@ -80,3 +80,41 @@ export async function procesarTransferencia(payload) {
   const { data } = await client.post('/caja/transferencias', payload)
   return data
 }
+
+/**
+ * Obtener resumen de arqueo con saldos teóricos por moneda y desglose de denominaciones.
+ * GET /api/v1/caja/arqueos/resumen
+ * @returns {Promise<{control_caja_id: number, caja_nombre: string, fecha_apertura: string, umbral_diferencia: string|number, monedas: Array<object>}>}
+ */
+export async function getResumenArqueo() {
+  const { data } = await client.get('/caja/arqueos/resumen')
+  return data
+}
+
+/**
+ * Registrar conteo físico de arqueo y conciliar con saldo teórico.
+ * POST /api/v1/caja/arqueos
+ * @param {{
+ *   monedas: Array<{moneda_id: number, detalle: Array<{denominacion: string|number, cantidad: number}>}>,
+ *   observacion?: string,
+ *   cerrar_caja?: boolean,
+ *   supervisor?: {correo: string, contrasena: string}
+ * }} payload
+ * @returns {Promise<object>} Hoja de arqueo generada
+ */
+export async function registrarArqueo(payload) {
+  const { data } = await client.post('/caja/arqueos', payload)
+  return data
+}
+
+/**
+ * Obtener detalle de una hoja de arqueo por su identificador.
+ * GET /api/v1/caja/arqueos/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>}
+ */
+export async function getArqueo(id) {
+  const { data } = await client.get(`/caja/arqueos/${id}`)
+  return data
+}
+

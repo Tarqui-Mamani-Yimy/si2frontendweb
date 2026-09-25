@@ -8,7 +8,9 @@ import AlertBanner from '../../../components/ui/AlertBanner'
 import AperturaCajaCard from '../components/AperturaCajaCard'
 import DepositoTab from '../components/DepositoTab'
 import TransferenciaTab from '../components/TransferenciaTab'
+import ArqueoTab from '../components/ArqueoTab'
 import ReciboCajaModal from '../components/ReciboCajaModal'
+import HojaArqueoModal from '../components/HojaArqueoModal'
 
 function formatMoney(value, simbolo = 'Bs') {
   const n = Number(value ?? 0)
@@ -21,12 +23,18 @@ export default function CajaPage() {
   const [sesion, setSesion] = useState(null)
   const [loadingSesion, setLoadingSesion] = useState(true)
   const [errorSesion, setErrorSesion] = useState(null)
-  const [activeTab, setActiveTab] = useState('deposito') // 'deposito' | 'transferencia'
+  const [activeTab, setActiveTab] = useState('deposito') // 'deposito' | 'transferencia' | 'arqueo'
 
   // Estado del modal de comprobante
   const [reciboModal, setReciboModal] = useState({
     open: false,
     tipo: 'DEPOSITO',
+    datos: null,
+  })
+
+  // Estado del modal de hoja de arqueo (CU-W15)
+  const [hojaArqueoModal, setHojaArqueoModal] = useState({
+    open: false,
     datos: null,
   })
 
@@ -79,6 +87,17 @@ export default function CajaPage() {
     })
   }
 
+  function handleArqueoSuccess(arqueoData) {
+    setHojaArqueoModal({
+      open: true,
+      datos: arqueoData,
+    })
+    if (arqueoData?.cierre) {
+      setSesion(null)
+      setActiveTab('deposito')
+    }
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
 
@@ -101,7 +120,7 @@ export default function CajaPage() {
         /* ── Caso: Sin Sesión Abierta (CU-W10) ── */
         <AperturaCajaCard onAperturaSuccess={handleAperturaSuccess} />
       ) : (
-        /* ── Caso: Sesión Abierta y Activa (CU-W11, CU-W13) ── */
+        /* ── Caso: Sesión Abierta y Activa (CU-W11, CU-W13, CU-W15) ── */
         <div className="space-y-6">
 
           {/* Tarjeta Informativa de la Sesión Activa */}
@@ -172,6 +191,19 @@ export default function CajaPage() {
                 <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
                 <span>Transferencias Internas (CU-W13)</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('arqueo')}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+                  activeTab === 'arqueo'
+                    ? 'border-[#064e3b] text-[#064e3b]'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">balance</span>
+                <span>Arqueo y Conciliación (CU-W15)</span>
+              </button>
             </div>
           </div>
 
@@ -183,6 +215,10 @@ export default function CajaPage() {
           {activeTab === 'transferencia' && (
             <TransferenciaTab onTransferenciaExitosa={handleTransferenciaSuccess} />
           )}
+
+          {activeTab === 'arqueo' && (
+            <ArqueoTab onArqueoExitoso={handleArqueoSuccess} />
+          )}
         </div>
       )}
 
@@ -192,6 +228,14 @@ export default function CajaPage() {
         onClose={() => setReciboModal({ open: false, tipo: 'DEPOSITO', datos: null })}
         tipo={reciboModal.tipo}
         datos={reciboModal.datos}
+        cooperativaNombre={user?.cooperativa?.nombre}
+      />
+
+      {/* ── Modal de Hoja de Arqueo Imprimible (CU-W15) ── */}
+      <HojaArqueoModal
+        open={hojaArqueoModal.open}
+        onClose={() => setHojaArqueoModal({ open: false, datos: null })}
+        datos={hojaArqueoModal.datos}
         cooperativaNombre={user?.cooperativa?.nombre}
       />
     </div>
