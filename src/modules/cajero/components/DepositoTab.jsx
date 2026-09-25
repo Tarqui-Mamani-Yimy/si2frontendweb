@@ -4,6 +4,7 @@ import Button from '../../../components/ui/Button'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Badge from '../../../components/ui/Badge'
 import Skeleton from '../../../components/ui/Skeleton'
+import DeclaracionUifModal from '../../../shared/components/uif/DeclaracionUifModal'
 
 function formatMoney(value, simbolo = 'Bs') {
   const n = Number(value ?? 0)
@@ -21,6 +22,10 @@ export default function DepositoTab({ onDepositoExitoso }) {
   const [depositanteCi, setDepositanteCi] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
+
+  // Integración Declaración Jurada UIF (CU-W14)
+  const [showUifModal, setShowUifModal] = useState(false)
+  const [uifData, setUifData] = useState(null)
 
   async function handleBuscar(e) {
     e?.preventDefault()
@@ -45,12 +50,55 @@ export default function DepositoTab({ onDepositoExitoso }) {
   function handleSelectCuenta(c) {
     setCuentaSeleccionada(c)
     setErrorMsg(null)
+    setUifData(null)
   }
 
   function handleAutoFillTitular() {
     if (!cuentaSeleccionada?.titular) return
     setDepositanteNombre(cuentaSeleccionada.titular.nombre_completo || '')
     setDepositanteCi(cuentaSeleccionada.titular.ci || '')
+  }
+
+  async function ejecutarDeposito(overrideUif = null) {
+    const dataUif = overrideUif || uifData
+    const montoNum = parseFloat(monto)
+
+    setSubmitting(true)
+    setErrorMsg(null)
+    try {
+      const payload = {
+        cuenta_id: cuentaSeleccionada.id,
+        monto: montoNum.toFixed(2),
+        depositante_nombre: depositanteNombre.trim(),
+        depositante_ci: depositanteCi.trim(),
+      }
+
+      if (dataUif) {
+        payload.declaracion_uif = dataUif
+      }
+
+      const recibo = await procesarDeposito(payload)
+
+      // Limpiar formulario y emitir comprobante
+      setMonto('')
+      setDepositanteNombre('')
+      setDepositanteCi('')
+      setCuentaSeleccionada(null)
+      setCuentasEncontradas(null)
+      setQuery('')
+      setUifData(null)
+
+      onDepositoExitoso(recibo)
+    } catch (err) {
+      if (err.response?.status === 428) {
+        setShowUifModal(true)
+        setErrorMsg(err.response?.data?.detail ?? 'Se requiere Declaración Jurada UIF para procesar esta operación.')
+      } else {
+        setErrorMsg(err.response?.data?.detail ?? 'Error al procesar el depósito en ventanilla.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleSubmitDeposito(e) {
@@ -83,30 +131,24 @@ export default function DepositoTab({ onDepositoExitoso }) {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const recibo = await procesarDeposito({
-        cuenta_id: cuentaSeleccionada.id,
-        monto: montoNum.toFixed(2),
-        depositante_nombre: depositanteNombre.trim(),
-        depositante_ci: depositanteCi.trim(),
-      })
+    // Verificación proactiva de umbral normativo UIF (BOB >= 70,000 / USD >= 10,000)
+    const codigoIso = cuentaSeleccionada.moneda?.codigo_iso || (typeof cuentaSeleccionada.moneda === 'string' ? cuentaSeleccionada.moneda : 'BOB')
+    const umbralUif = codigoIso === 'USD' ? 10000 : 70000
 
-      // Limpiar formulario y emitir comprobante
-      setMonto('')
-      setDepositanteNombre('')
-      setDepositanteCi('')
-      setCuentaSeleccionada(null)
-      setCuentasEncontradas(null)
-      setQuery('')
-
-      onDepositoExitoso(recibo)
-    } catch (err) {
-      setErrorMsg(err.response?.data?.detail ?? 'Error al procesar el depósito en ventanilla.')
-    } finally {
-      setSubmitting(false)
+    if (montoNum >= umbralUif && !uifData) {
+      setShowUifModal(true)
+      return
     }
+
+    ejecutarDeposito()
   }
+
+  function handleConfirmarUif(datosDeclaracion) {
+    setUifData(datosDeclaracion)
+    setShowUifModal(false)
+    ejecutarDeposito(datosDeclaracion)
+  }
+
 
   return (
     <div className="space-y-6">
@@ -324,6 +366,19 @@ export default function DepositoTab({ onDepositoExitoso }) {
           </form>
         </div>
       )}
+
+      {/* ── Modal de Declaración Jurada UIF (CU-W14) ── */}
+      <DeclaracionUifModal
+        open={showUifModal}
+        onClose={() => setShowUifModal(false)}
+        onConfirmar={handleConfirmarUif}
+        socio={cuentaSeleccionada?.titular}
+        monto={monto}
+        monedaSimbolo={cuentaSeleccionada?.moneda?.simbolo || 'Bs.'}
+        tipoOperacion="DEPOSITO_VENTANILLA"
+      />
     </div>
   )
 }
+
+

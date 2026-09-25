@@ -4,6 +4,7 @@ import Button from '../../../components/ui/Button'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Badge from '../../../components/ui/Badge'
 import Skeleton from '../../../components/ui/Skeleton'
+import DeclaracionUifModal from '../../../shared/components/uif/DeclaracionUifModal'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = Number(value ?? 0)
@@ -32,6 +33,10 @@ export default function RetiroTab({ onRetiroExitoso }) {
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
 
+  // Integración Declaración Jurada UIF (CU-W14)
+  const [showUifModal, setShowUifModal] = useState(false)
+  const [uifData, setUifData] = useState(null)
+
   async function handleBuscar(e) {
     e?.preventDefault()
     if (!query.trim()) return
@@ -55,6 +60,7 @@ export default function RetiroTab({ onRetiroExitoso }) {
   function seleccionarCuenta(c) {
     setCuentaSeleccionada(c)
     setErrorMsg(null)
+    setUifData(null)
     setTipoRetirante('TITULAR')
     if (c?.titular) {
       setRetiranteNombre(c.titular.nombre_completo || '')
@@ -73,6 +79,49 @@ export default function RetiroTab({ onRetiroExitoso }) {
     } else if (nuevoTipo === 'APODERADO') {
       setRetiranteNombre('')
       setRetiranteCi('')
+    }
+  }
+
+  async function ejecutarRetiro(overrideUif = null) {
+    const dataUif = overrideUif || uifData
+    const montoNum = parseFloat(monto)
+
+    setSubmitting(true)
+    setErrorMsg(null)
+    try {
+      const payload = {
+        cuenta_id: cuentaSeleccionada.id,
+        monto: montoNum.toFixed(2),
+        retirante: {
+          tipo: tipoRetirante,
+          nombre: retiranteNombre.trim(),
+          ci: retiranteCi.trim(),
+        },
+      }
+
+      if (dataUif) {
+        payload.declaracion_uif = dataUif
+      }
+
+      const recibo = await procesarRetiro(payload)
+
+      // Limpiar formulario y emitir comprobante
+      setMonto('')
+      setCuentaSeleccionada(null)
+      setCuentasEncontradas(null)
+      setQuery('')
+      setUifData(null)
+
+      onRetiroExitoso(recibo)
+    } catch (err) {
+      if (err.response?.status === 428) {
+        setShowUifModal(true)
+        setErrorMsg(err.response?.data?.detail ?? 'Se requiere Declaración Jurada UIF para procesar este retiro.')
+      } else {
+        setErrorMsg(err.response?.data?.detail ?? 'Error al procesar el retiro en ventanilla.')
+      }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -106,31 +155,24 @@ export default function RetiroTab({ onRetiroExitoso }) {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const recibo = await procesarRetiro({
-        cuenta_id: cuentaSeleccionada.id,
-        monto: montoNum.toFixed(2),
-        retirante: {
-          tipo: tipoRetirante,
-          nombre: retiranteNombre.trim(),
-          ci: retiranteCi.trim(),
-        },
-      })
+    // Verificación proactiva de umbral normativo UIF (BOB >= 70,000 / USD >= 10,000)
+    const codigoIso = cuentaSeleccionada.moneda?.codigo_iso || (typeof cuentaSeleccionada.moneda === 'string' ? cuentaSeleccionada.moneda : 'BOB')
+    const umbralUif = codigoIso === 'USD' ? 10000 : 70000
 
-      // Limpiar formulario y emitir comprobante
-      setMonto('')
-      setCuentaSeleccionada(null)
-      setCuentasEncontradas(null)
-      setQuery('')
-
-      onRetiroExitoso(recibo)
-    } catch (err) {
-      setErrorMsg(err.response?.data?.detail ?? 'Error al procesar el retiro en ventanilla.')
-    } finally {
-      setSubmitting(false)
+    if (montoNum >= umbralUif && !uifData) {
+      setShowUifModal(true)
+      return
     }
+
+    ejecutarRetiro()
   }
+
+  function handleConfirmarUif(datosDeclaracion) {
+    setUifData(datosDeclaracion)
+    setShowUifModal(false)
+    ejecutarRetiro(datosDeclaracion)
+  }
+
 
   const simboloMoneda = cuentaSeleccionada?.moneda?.simbolo || (typeof cuentaSeleccionada?.moneda === 'string' ? cuentaSeleccionada.moneda : (cuentaSeleccionada?.moneda?.codigo_iso || 'Bs.'))
   const saldoMinimoPermanencia = cuentaSeleccionada?.tipo_producto === 'PROGRAMADO' ? 50.0 : 10.0
@@ -434,6 +476,18 @@ export default function RetiroTab({ onRetiroExitoso }) {
         </form>
       )}
 
+      {/* ── Modal de Declaración Jurada UIF (CU-W14) ── */}
+      <DeclaracionUifModal
+        open={showUifModal}
+        onClose={() => setShowUifModal(false)}
+        onConfirmar={handleConfirmarUif}
+        socio={cuentaSeleccionada?.titular}
+        monto={monto}
+        monedaSimbolo={simboloMoneda}
+        tipoOperacion="RETIRO_VENTANILLA"
+      />
     </div>
   )
 }
+
+

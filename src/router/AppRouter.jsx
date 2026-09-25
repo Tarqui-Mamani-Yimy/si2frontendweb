@@ -61,6 +61,9 @@ import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
 import SocioMiCuentaPage from '../modules/socio/pages/MiCuentaPage'
 import SocioMisCreditosPage from '../modules/socio/pages/MisCreditosPage'
 
+// ── Shared / DPF ──────────────────────────────────────────────
+import PlazoFijoPage from '../shared/components/dpf/PlazoFijoPage'
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -109,6 +112,7 @@ export default function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<CajeroDashboardPage />} />
             <Route path="caja" element={<CajeroCajaPage />} />
+            <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
           </Route>
         </Route>
@@ -118,6 +122,7 @@ export default function AppRouter() {
           <Route element={<OficialLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<OficialDashboardPage />} />
+            <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />
           </Route>
