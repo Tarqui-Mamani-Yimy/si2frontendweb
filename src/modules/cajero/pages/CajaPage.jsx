@@ -7,10 +7,14 @@ import Skeleton from '../../../components/ui/Skeleton'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import AperturaCajaCard from '../components/AperturaCajaCard'
 import DepositoTab from '../components/DepositoTab'
+import RetiroTab from '../components/RetiroTab'
 import TransferenciaTab from '../components/TransferenciaTab'
 import ArqueoTab from '../components/ArqueoTab'
+import CierreTab from '../components/CierreTab'
 import ReciboCajaModal from '../components/ReciboCajaModal'
+import ComprobanteRetiroModal from '../components/ComprobanteRetiroModal'
 import HojaArqueoModal from '../components/HojaArqueoModal'
+import PlanillaCierreModal from '../components/PlanillaCierreModal'
 
 function formatMoney(value, simbolo = 'Bs') {
   const n = Number(value ?? 0)
@@ -23,17 +27,29 @@ export default function CajaPage() {
   const [sesion, setSesion] = useState(null)
   const [loadingSesion, setLoadingSesion] = useState(true)
   const [errorSesion, setErrorSesion] = useState(null)
-  const [activeTab, setActiveTab] = useState('deposito') // 'deposito' | 'transferencia' | 'arqueo'
+  const [activeTab, setActiveTab] = useState('deposito') // 'deposito' | 'retiro' | 'transferencia' | 'arqueo' | 'cierre'
 
-  // Estado del modal de comprobante
+  // Estado del modal de comprobante de depósito / transferencia / apertura
   const [reciboModal, setReciboModal] = useState({
     open: false,
     tipo: 'DEPOSITO',
     datos: null,
   })
 
+  // Estado del comprobante de retiro en ventanilla (CU-W12)
+  const [retiroModal, setRetiroModal] = useState({
+    open: false,
+    datos: null,
+  })
+
   // Estado del modal de hoja de arqueo (CU-W15)
   const [hojaArqueoModal, setHojaArqueoModal] = useState({
+    open: false,
+    datos: null,
+  })
+
+  // Estado de la planilla de cierre consolidado (CU-W16)
+  const [cierreModal, setCierreModal] = useState({
     open: false,
     datos: null,
   })
@@ -79,6 +95,18 @@ export default function CajaPage() {
     })
   }
 
+  function handleRetiroSuccess(reciboData) {
+    if (reciboData?.monto && sesion) {
+      const nuevoSaldo = Number(sesion.saldo_sistema ?? 0) - Number(reciboData.monto)
+      setSesion((prev) => (prev ? { ...prev, saldo_sistema: nuevoSaldo } : null))
+    }
+
+    setRetiroModal({
+      open: true,
+      datos: reciboData,
+    })
+  }
+
   function handleTransferenciaSuccess(reciboData) {
     setReciboModal({
       open: true,
@@ -92,10 +120,15 @@ export default function CajaPage() {
       open: true,
       datos: arqueoData,
     })
-    if (arqueoData?.cierre) {
-      setSesion(null)
-      setActiveTab('deposito')
-    }
+  }
+
+  function handleCierreSuccess(planillaData) {
+    setCierreModal({
+      open: true,
+      datos: planillaData,
+    })
+    setSesion(null)
+    setActiveTab('deposito')
   }
 
   return (
@@ -104,7 +137,7 @@ export default function CajaPage() {
       {/* ── Encabezado Principal ── */}
       <PageHeader
         title="Operaciones de Caja en Ventanilla"
-        subtitle="Gestión de turno fiduciario, recepción de depósitos y transferencias internas."
+        subtitle="Gestión de turno fiduciario, recepción de depósitos, retiros, transferencias y cierre de caja."
       />
 
       {loadingSesion ? (
@@ -120,7 +153,7 @@ export default function CajaPage() {
         /* ── Caso: Sin Sesión Abierta (CU-W10) ── */
         <AperturaCajaCard onAperturaSuccess={handleAperturaSuccess} />
       ) : (
-        /* ── Caso: Sesión Abierta y Activa (CU-W11, CU-W13, CU-W15) ── */
+        /* ── Caso: Sesión Abierta y Activa (CU-W11, CU-W12, CU-W13, CU-W15, CU-W16) ── */
         <div className="space-y-6">
 
           {/* Tarjeta Informativa de la Sesión Activa */}
@@ -165,44 +198,70 @@ export default function CajaPage() {
             </div>
 
             {/* Pestañas de Navegación de Flujos */}
-            <div className="mt-4 flex gap-2 border-b border-slate-200">
+            <div className="mt-4 flex gap-1 sm:gap-2 border-b border-slate-200 overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab('deposito')}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
                   activeTab === 'deposito'
                     ? 'border-[#064e3b] text-[#064e3b]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">payments</span>
-                <span>Depósitos en Efectivo (CU-W11)</span>
+                <span>Depósitos (CU-W11)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('retiro')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+                  activeTab === 'retiro'
+                    ? 'border-[#064e3b] text-[#064e3b]'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">money_off</span>
+                <span>Retiros (CU-W12)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('transferencia')}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
                   activeTab === 'transferencia'
                     ? 'border-[#064e3b] text-[#064e3b]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
-                <span>Transferencias Internas (CU-W13)</span>
+                <span>Transferencias (CU-W13)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('arqueo')}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
                   activeTab === 'arqueo'
                     ? 'border-[#064e3b] text-[#064e3b]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">balance</span>
-                <span>Arqueo y Conciliación (CU-W15)</span>
+                <span>Arqueo (CU-W15)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('cierre')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+                  activeTab === 'cierre'
+                    ? 'border-rose-700 text-rose-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">lock</span>
+                <span>Cierre (CU-W16)</span>
               </button>
             </div>
           </div>
@@ -212,17 +271,31 @@ export default function CajaPage() {
             <DepositoTab onDepositoExitoso={handleDepositoSuccess} />
           )}
 
+          {activeTab === 'retiro' && (
+            <RetiroTab onRetiroExitoso={handleRetiroSuccess} />
+          )}
+
           {activeTab === 'transferencia' && (
             <TransferenciaTab onTransferenciaExitosa={handleTransferenciaSuccess} />
           )}
 
           {activeTab === 'arqueo' && (
-            <ArqueoTab onArqueoExitoso={handleArqueoSuccess} />
+            <ArqueoTab
+              onArqueoExitoso={handleArqueoSuccess}
+              onIrACierre={() => setActiveTab('cierre')}
+            />
+          )}
+
+          {activeTab === 'cierre' && (
+            <CierreTab
+              onCierreExitoso={handleCierreSuccess}
+              onIrArqueo={() => setActiveTab('arqueo')}
+            />
           )}
         </div>
       )}
 
-      {/* ── Modal de Comprobante Imprimible ── */}
+      {/* ── Modal de Comprobante Imprimible (Depósito / Apertura / Transferencia) ── */}
       <ReciboCajaModal
         open={reciboModal.open}
         onClose={() => setReciboModal({ open: false, tipo: 'DEPOSITO', datos: null })}
@@ -231,11 +304,27 @@ export default function CajaPage() {
         cooperativaNombre={user?.cooperativa?.nombre}
       />
 
+      {/* ── Modal de Comprobante de Retiro Imprimible (CU-W12) ── */}
+      <ComprobanteRetiroModal
+        open={retiroModal.open}
+        onClose={() => setRetiroModal({ open: false, datos: null })}
+        datos={retiroModal.datos}
+        cooperativaNombre={user?.cooperativa?.nombre}
+      />
+
       {/* ── Modal de Hoja de Arqueo Imprimible (CU-W15) ── */}
       <HojaArqueoModal
         open={hojaArqueoModal.open}
         onClose={() => setHojaArqueoModal({ open: false, datos: null })}
         datos={hojaArqueoModal.datos}
+        cooperativaNombre={user?.cooperativa?.nombre}
+      />
+
+      {/* ── Modal de Planilla de Cierre Imprimible (CU-W16) ── */}
+      <PlanillaCierreModal
+        open={cierreModal.open}
+        onClose={() => setCierreModal({ open: false, datos: null })}
+        datos={cierreModal.datos}
         cooperativaNombre={user?.cooperativa?.nombre}
       />
     </div>

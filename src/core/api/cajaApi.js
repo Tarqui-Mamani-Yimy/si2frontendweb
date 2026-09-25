@@ -118,3 +118,65 @@ export async function getArqueo(id) {
   return data
 }
 
+/**
+ * Procesar retiro en efectivo en ventanilla (CU-W12).
+ * POST /api/v1/caja/retiros
+ * @param {{
+ *   cuenta_id: number,
+ *   monto: number|string,
+ *   retirante: {
+ *     tipo: 'TITULAR'|'APODERADO',
+ *     nombre: string,
+ *     ci: string
+ *   }
+ * }} payload
+ * @returns {Promise<object>}
+ */
+export async function procesarRetiro(payload) {
+  const { data } = await client.post('/caja/retiros', payload)
+  return data
+}
+
+/**
+ * Verificar precondiciones y alertas para el cierre de turno (CU-W16).
+ * GET /api/v1/caja/cierres/verificacion
+ * @returns {Promise<{
+ *   puede_cerrar: boolean,
+ *   alertas: string[],
+ *   arqueo: {
+ *     id: number,
+ *     fecha: string,
+ *     requiere_supervisor: boolean,
+ *     supervisor: {id: number, nombre: string}|null,
+ *     monedas: Array<{moneda: object, resultado: string, diferencia: string|number}>
+ *   }|null
+ * }>}
+ */
+export async function verificarCierre() {
+  const { data } = await client.get('/caja/cierres/verificacion')
+  return data
+}
+
+/**
+ * Ejecutar cierre formal de turno fiduciario (CU-W16).
+ * POST /api/v1/caja/cierres
+ * @param {{observacion?: string}} payload
+ * @returns {Promise<object>} Planilla de cierre consolidada
+ */
+export async function cerrarTurno(payload = {}) {
+  const { data } = await client.post('/caja/cierres', payload)
+  return data
+}
+
+/**
+ * Obtener detalle de una planilla de cierre de turno por su identificador.
+ * GET /api/v1/caja/cierres/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>}
+ */
+export async function getCierre(id) {
+  const { data } = await client.get(`/caja/cierres/${id}`)
+  return data
+}
+
+

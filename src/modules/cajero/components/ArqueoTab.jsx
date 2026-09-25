@@ -4,7 +4,6 @@ import Button from '../../../components/ui/Button'
 import Badge from '../../../components/ui/Badge'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Skeleton from '../../../components/ui/Skeleton'
-import Modal from '../../../components/ui/Modal'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = Number(value ?? 0)
@@ -15,10 +14,11 @@ function formatMoney(value, simbolo = 'Bs.') {
  * ArqueoTab — conteo físico por denominaciones, conciliación en tiempo real y cierre de caja (CU-W15).
  *
  * @param {{
- *   onArqueoExitoso: (arqueoData: object) => void
+ *   onArqueoExitoso: (arqueoData: object) => void,
+ *   onIrACierre?: () => void
  * }} props
  */
-export default function ArqueoTab({ onArqueoExitoso }) {
+export default function ArqueoTab({ onArqueoExitoso, onIrACierre }) {
   const [resumen, setResumen] = useState(null)
   const [loadingResumen, setLoadingResumen] = useState(true)
   const [errorResumen, setErrorResumen] = useState(null)
@@ -31,8 +31,7 @@ export default function ArqueoTab({ onArqueoExitoso }) {
 
   // Formulario y opciones
   const [observacion, setObservacion] = useState('')
-  const [cerrarCaja, setCerrarCaja] = useState(false)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [arqueoRealizado, setArqueoRealizado] = useState(null)
 
   // Bloque de supervisor
   const [supervisorCorreo, setSupervisorCorreo] = useState('')
@@ -138,16 +137,10 @@ export default function ArqueoTab({ onArqueoExitoso }) {
       }
     }
 
-    if (cerrarCaja) {
-      setShowConfirmModal(true)
-      return
-    }
-
     ejecutarRegistro()
   }
 
   async function ejecutarRegistro() {
-    setShowConfirmModal(false)
     setSubmitting(true)
     setErrorSubmit(null)
 
@@ -161,7 +154,6 @@ export default function ArqueoTab({ onArqueoExitoso }) {
           })),
         })),
         observacion: observacion.trim() || null,
-        cerrar_caja: Boolean(cerrarCaja),
       }
 
       if (supervisorCorreo.trim() && supervisorContrasena.trim()) {
@@ -172,6 +164,7 @@ export default function ArqueoTab({ onArqueoExitoso }) {
       }
 
       const arqueoResult = await registrarArqueo(payload)
+      setArqueoRealizado(arqueoResult)
       onArqueoExitoso?.(arqueoResult)
     } catch (err) {
       if (err.response?.status === 409) {
@@ -182,6 +175,7 @@ export default function ArqueoTab({ onArqueoExitoso }) {
       setSubmitting(false)
     }
   }
+
 
   if (loadingResumen) {
     return (
@@ -473,25 +467,6 @@ export default function ArqueoTab({ onArqueoExitoso }) {
             />
           </div>
 
-          {/* Checkbox de Cierre de Caja */}
-          <div className="pt-2 border-t border-slate-100">
-            <label className="flex items-start gap-3 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={cerrarCaja}
-                onChange={(e) => setCerrarCaja(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-[#064e3b] focus:ring-[#064e3b] cursor-pointer"
-              />
-              <div>
-                <span className="text-sm font-bold text-slate-900 block">
-                  Cerrar turno y caja definitivamente (Cierre de jornada)
-                </span>
-                <span className="text-xs text-slate-500 block">
-                  Si marcas esta opción, la sesión actual finalizará con el monto físico contado y la caja quedará en estado CERRADA hasta una nueva apertura.
-                </span>
-              </div>
-            </label>
-          </div>
         </div>
 
         {/* ── Bloque de Autorización de Supervisor (CU-W15) ── */}
@@ -538,6 +513,35 @@ export default function ArqueoTab({ onArqueoExitoso }) {
           </div>
         )}
 
+        {/* Notificación de Arqueo Exitoso con Acceso a Cierre */}
+        {arqueoRealizado && (
+          <div className="rounded-xl border border-emerald-300 bg-emerald-50/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-emerald-700 text-[24px]">task_alt</span>
+              <div>
+                <span className="text-xs font-bold text-emerald-900 block">
+                  Arqueo físico registrado exitosamente (#{arqueoRealizado.id})
+                </span>
+                <span className="text-[11px] text-emerald-700">
+                  El conteo quedó asentado formalmente. Podés continuar operando en ventanilla o proceder al cierre de turno.
+                </span>
+              </div>
+            </div>
+            {onIrACierre && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={onIrACierre}
+                className="gap-1.5 shrink-0"
+              >
+                <span>Ir a Cierre de Turno</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Mensaje de Error si ocurre */}
         {errorSubmit && (
           <AlertBanner variant="error" onClose={() => setErrorSubmit(null)}>
@@ -551,68 +555,13 @@ export default function ArqueoTab({ onArqueoExitoso }) {
             type="submit"
             variant="primary"
             disabled={submitting}
-            className={`gap-2 min-w-[200px] ${cerrarCaja ? '!bg-rose-700 hover:!bg-rose-800' : ''}`}
+            className="gap-2 min-w-[200px]"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              {cerrarCaja ? 'lock' : 'verified'}
-            </span>
-            <span>
-              {submitting
-                ? 'Procesando Arqueo...'
-                : cerrarCaja
-                ? 'Registrar y Cerrar Caja'
-                : 'Registrar Arqueo Parcial'}
-            </span>
+            <span className="material-symbols-outlined text-[18px]">verified</span>
+            <span>{submitting ? 'Procesando Arqueo...' : 'Registrar Arqueo Físico'}</span>
           </Button>
         </div>
       </form>
-
-      {/* ── Modal de Confirmación de Cierre Definitivo ── */}
-      <Modal
-        open={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        title="Confirmar Cierre de Caja"
-        subtitle="Finalización de turno fiduciario"
-        footer={
-          <div className="flex justify-end gap-2 w-full">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowConfirmModal(false)}
-              disabled={submitting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={ejecutarRegistro}
-              disabled={submitting}
-              className="!bg-rose-700 hover:!bg-rose-800"
-            >
-              {submitting ? 'Cerrando...' : 'Sí, Cerrar Caja Definitivamente'}
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-3 text-xs text-slate-700">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 text-amber-900 border border-amber-200">
-            <span className="material-symbols-outlined text-amber-600 text-[24px]">warning</span>
-            <p>
-              Estás a punto de <strong>cerrar la sesión de ventanilla</strong>. Una vez cerrada, no podrás
-              registrar más depósitos ni transferencias hasta una nueva apertura formal.
-            </p>
-          </div>
-          <p>
-            El saldo contado en Bolivianos (<strong>{formatMoney(calculos[1]?.totalContado ?? calculoActivo.totalContado, 'Bs.')}</strong>)
-            quedará asentado como monto de cierre oficial.
-          </p>
-          <p className="text-slate-500">¿Deseas confirmar la operación?</p>
-        </div>
-      </Modal>
-
     </div>
   )
 }
