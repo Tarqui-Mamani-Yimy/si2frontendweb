@@ -100,6 +100,7 @@ export default function AppRouter() {
             <Route path="roles" element={<RolesPage />} />
             <Route path="socios" element={<AdminSociosPage />} />
             <Route path="socios/nuevo" element={<RegistrarSocioPage />} />
+            <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />

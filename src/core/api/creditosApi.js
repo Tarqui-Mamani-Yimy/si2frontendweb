@@ -168,3 +168,38 @@ export async function anularSolicitudCredito(id, motivo) {
   const { data } = await client.patch(`/creditos/solicitudes/${id}/anulacion`, { motivo })
   return data
 }
+
+/**
+ * Ejecutar la evaluación de scoring crediticio y dictamen automático (CU-W23).
+ * POST /api/v1/creditos/solicitudes/{id}/evaluacion
+ * @param {number|string} id
+ * @returns {Promise<object>} EvaluacionCrediticiaOut
+ */
+export async function evaluarSolicitud(id) {
+  const { data } = await client.post(`/creditos/solicitudes/${id}/evaluacion`)
+  return data
+}
+
+/**
+ * Listar el historial de evaluaciones de scoring crediticio de una solicitud (más reciente primero).
+ * GET /api/v1/creditos/solicitudes/{id}/evaluaciones
+ * @param {number|string} id
+ * @returns {Promise<Array<object>>} List[EvaluacionCrediticiaOut]
+ */
+export async function listarEvaluaciones(id) {
+  const { data } = await client.get(`/creditos/solicitudes/${id}/evaluaciones`)
+  return data
+}
+
+/**
+ * Resolver una solicitud en REVISIÓN MANUAL por parte de un Administrador (CU-W23).
+ * POST /api/v1/creditos/solicitudes/{id}/resolucion
+ * @param {number|string} id
+ * @param {{ decision: 'APROBADO' | 'RECHAZADO', justificacion: string }} payload
+ * @returns {Promise<object>} EvaluacionCrediticiaOut
+ */
+export async function resolverSolicitud(id, payload) {
+  const { data } = await client.post(`/creditos/solicitudes/${id}/resolucion`, payload)
+  return data
+}
+

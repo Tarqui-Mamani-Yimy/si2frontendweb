@@ -9,6 +9,8 @@ import SolicitudModal from '../components/solicitudes/SolicitudModal'
 import DetalleSolicitudModal from '../components/solicitudes/DetalleSolicitudModal'
 import AnularSolicitudModal from '../components/solicitudes/AnularSolicitudModal'
 import { listSolicitudesCredito } from '../../../core/api/creditosApi'
+import { useAuthStore, selectUser } from '../../../core/store/authStore'
+import { normalizeRole } from '../../../core/utils/roles'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = Number(value ?? 0)
@@ -47,7 +49,27 @@ function getEstadoBadgeVariant(estado) {
   }
 }
 
+function getDictamenBadgeVariant(dictamen) {
+  switch (dictamen) {
+    case 'APROBADO':
+      return 'green'
+    case 'REVISION_MANUAL':
+      return 'amber'
+    case 'RECHAZADO':
+      return 'red'
+    default:
+      return 'slate'
+  }
+}
+
 export default function OficialSolicitudesPage() {
+  const user = useAuthStore(selectUser)
+  const roleName = user?.rol?.nombre || ''
+  const isAdmin =
+    roleName === 'ADMINISTRADOR' ||
+    roleName === 'SUPERADMIN' ||
+    normalizeRole(roleName) === 'administrador'
+
   const [solicitudes, setSolicitudes] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -63,6 +85,7 @@ export default function OficialSolicitudesPage() {
   const [formModalOpen, setFormModalOpen] = useState(false)
   const [solicitudToEdit, setSolicitudToEdit] = useState(null)
   const [solicitudDetalle, setSolicitudDetalle] = useState(null)
+  const [modalInitialTab, setModalInitialTab] = useState('expediente')
   const [solicitudToAnular, setSolicitudToAnular] = useState(null)
 
   useEffect(() => {
@@ -328,6 +351,9 @@ export default function OficialSolicitudesPage() {
                 RCI Indicador
               </th>
               <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+                Dictamen Scoring
+              </th>
+              <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
                 Estado
               </th>
               <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
@@ -338,7 +364,7 @@ export default function OficialSolicitudesPage() {
           <tbody className="divide-y divide-[#e2e8f0]/80">
             {loading ? (
               <tr>
-                <td colSpan={8} className="p-6">
+                <td colSpan={9} className="p-6">
                   <div className="space-y-3">
                     <Skeleton className="h-6 w-full" />
                     <Skeleton className="h-6 w-full" />
@@ -348,7 +374,7 @@ export default function OficialSolicitudesPage() {
               </tr>
             ) : solicitudes.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-sm text-slate-400">
+                <td colSpan={9} className="px-6 py-12 text-center text-sm text-slate-400">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[36px] text-slate-300">folder_off</span>
                     <span className="font-semibold text-slate-600">No se encontraron solicitudes de crédito</span>
@@ -423,6 +449,22 @@ export default function OficialSolicitudesPage() {
                       )}
                     </td>
 
+                    {/* Dictamen Scoring (F2) */}
+                    <td className="px-4 py-3.5 text-xs text-center">
+                      {s.ultima_evaluacion ? (
+                        <div className="inline-flex flex-col items-center gap-0.5">
+                          <Badge variant={getDictamenBadgeVariant(s.ultima_evaluacion.dictamen)}>
+                            {s.ultima_evaluacion.dictamen}
+                          </Badge>
+                          <span className="font-mono text-[10px] font-bold text-slate-600">
+                            {s.ultima_evaluacion.score}/1000 pts
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 text-[11px]">Sin evaluar</span>
+                      )}
+                    </td>
+
                     {/* Estado */}
                     <td className="px-4 py-3.5 text-xs text-center">
                       <Badge variant={getEstadoBadgeVariant(s.estado)}>
@@ -433,11 +475,34 @@ export default function OficialSolicitudesPage() {
                     {/* Acciones */}
                     <td className="px-4 py-3.5 text-xs text-center">
                       <div className="flex items-center justify-center gap-1">
+                        {/* Botón Resolver para Administrador en solicitudes EN_EVALUACION con REVISION_MANUAL */}
+                        {isAdmin &&
+                          s.estado === 'EN_EVALUACION' &&
+                          s.ultima_evaluacion?.dictamen === 'REVISION_MANUAL' && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                setModalInitialTab('scoring')
+                                setSolicitudDetalle(s)
+                              }}
+                              className="gap-1 !text-xs !py-1 !px-2 bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100"
+                              title="Resolver revisión manual como Administrador"
+                            >
+                              <span className="material-symbols-outlined text-[15px] text-amber-700">gavel</span>
+                              <span>Resolver</span>
+                            </Button>
+                          )}
+
                         <Button
                           type="button"
                           variant="secondary"
                           size="sm"
-                          onClick={() => setSolicitudDetalle(s)}
+                          onClick={() => {
+                            setModalInitialTab('expediente')
+                            setSolicitudDetalle(s)
+                          }}
                           className="gap-1 !text-xs !py-1 !px-2"
                           title="Ver expediente e imprimir"
                         >
@@ -493,11 +558,12 @@ export default function OficialSolicitudesPage() {
         />
       )}
 
-      {/* ── Modal de Detalle e Impresión ── */}
+      {/* ── Modal de Detalle, Scoring e Impresión ── */}
       {solicitudDetalle && (
         <DetalleSolicitudModal
           open={Boolean(solicitudDetalle)}
           solicitud={solicitudDetalle}
+          initialTab={modalInitialTab}
           onClose={() => setSolicitudDetalle(null)}
           onEditar={(s) => {
             setSolicitudDetalle(null)
@@ -506,6 +572,10 @@ export default function OficialSolicitudesPage() {
           onAnular={(s) => {
             setSolicitudDetalle(null)
             handleAnular(s)
+          }}
+          onUpdated={(updatedSol) => {
+            reloadSolicitudes()
+            setSolicitudDetalle(updatedSol)
           }}
         />
       )}
