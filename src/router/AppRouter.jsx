@@ -50,6 +50,7 @@ import CajeroSociosPage from '../modules/cajero/pages/SociosPage'
 import OficialCreditosPage from '../modules/oficial/pages/CreditosPage'
 import OficialDashboardPage from '../modules/oficial/pages/DashboardPage'
 import OficialSociosPage from '../modules/oficial/pages/SociosPage'
+import OficialSolicitudesPage from '../modules/oficial/pages/SolicitudesPage'
 
 // ── Contador ──────────────────────────────────────────────────
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
@@ -122,6 +123,7 @@ export default function AppRouter() {
           <Route element={<OficialLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<OficialDashboardPage />} />
+            <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />

@@ -66,3 +66,105 @@ export async function listMonedas() {
   const { data } = await client.get('/ahorros/monedas')
   return data
 }
+
+/**
+ * Buscar socios activos de la cooperativa para originación de crédito.
+ * GET /api/v1/creditos/socios/buscar?q=
+ * @param {string} q Prefijo de CI o nombre/apellido (mín. 3 caracteres)
+ * @returns {Promise<Array<{id: number, nombre_completo: string, ci: string, estado: string}>>}
+ */
+export async function buscarSociosCredito(q) {
+  const { data } = await client.get('/creditos/socios/buscar', {
+    params: { q },
+  })
+  return data
+}
+
+/**
+ * Simular cuota, capacidad de pago y relación cuota/ingreso de una solicitud de crédito.
+ * POST /api/v1/creditos/solicitudes/simulacion
+ * @param {{
+ *   producto_id: number,
+ *   monto: number|string,
+ *   plazo_meses: number,
+ *   ingreso_mensual?: number|string,
+ *   egreso_mensual?: number|string,
+ *   cuota_deudas_mensual?: number|string
+ * }} payload
+ * @returns {Promise<{
+ *   producto: object,
+ *   moneda: object,
+ *   monto: string,
+ *   plazo_meses: number,
+ *   tasa_interes: string,
+ *   cuota_estimada: string,
+ *   total_intereses_estimado: string,
+ *   capacidad_pago: string|null,
+ *   relacion_cuota_ingreso: string|null,
+ *   relacion_maxima: string,
+ *   supera_relacion_maxima: boolean|null,
+ *   dentro_de_rangos: boolean,
+ *   errores: Array<string>
+ * }>}
+ */
+export async function simularSolicitudCredito(payload) {
+  const { data } = await client.post('/creditos/solicitudes/simulacion', payload)
+  return data
+}
+
+/**
+ * Registrar una nueva solicitud de crédito (estado PENDIENTE).
+ * POST /api/v1/creditos/solicitudes
+ * @param {object} payload
+ * @returns {Promise<object>}
+ */
+export async function crearSolicitudCredito(payload) {
+  const { data } = await client.post('/creditos/solicitudes', payload)
+  return data
+}
+
+/**
+ * Listar solicitudes de crédito de la cooperativa.
+ * GET /api/v1/creditos/solicitudes?estado=&socio_ci=&desde=&hasta=
+ * @param {{ estado?: string, socio_ci?: string, desde?: string, hasta?: string }} params
+ * @returns {Promise<Array<object>>}
+ */
+export async function listSolicitudesCredito(params = {}) {
+  const { data } = await client.get('/creditos/solicitudes', { params })
+  return data
+}
+
+/**
+ * Obtener detalle de una solicitud de crédito.
+ * GET /api/v1/creditos/solicitudes/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>}
+ */
+export async function getSolicitudCredito(id) {
+  const { data } = await client.get(`/creditos/solicitudes/${id}`)
+  return data
+}
+
+/**
+ * Actualizar una solicitud de crédito en estado PENDIENTE u OBSERVADA.
+ * PUT /api/v1/creditos/solicitudes/{id}
+ * @param {number|string} id
+ * @param {object} payload
+ * @returns {Promise<object>}
+ */
+export async function actualizarSolicitudCredito(id, payload) {
+  const { data } = await client.put(`/creditos/solicitudes/${id}`, payload)
+  return data
+}
+
+/**
+ * Anular una solicitud de crédito en estado PENDIENTE u OBSERVADA con justificación.
+ * PATCH /api/v1/creditos/solicitudes/{id}/anulacion
+ * @param {number|string} id
+ * @param {string} motivo Justificación de la anulación (mín. 5 caracteres)
+ * @returns {Promise<object>}
+ */
+export async function anularSolicitudCredito(id, motivo) {
+  const { data } = await client.patch(`/creditos/solicitudes/${id}/anulacion`, { motivo })
+  return data
+}
