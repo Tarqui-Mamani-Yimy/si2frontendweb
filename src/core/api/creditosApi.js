@@ -534,3 +534,91 @@ export async function getResumenMonitoreo() {
   return data
 }
 
+/**
+ * Registrar una nueva garantía o aval para una solicitud de crédito (CU-W22).
+ * POST /api/v1/creditos/solicitudes/{id}/garantias
+ * @param {number|string} solicitudId
+ * @param {object} payload
+ * @returns {Promise<object>} GarantiaOut
+ */
+export async function crearGarantia(solicitudId, payload) {
+  const { data } = await client.post(`/creditos/solicitudes/${solicitudId}/garantias`, payload)
+  return data
+}
+
+/**
+ * Listar todas las garantías y avales registrados para una solicitud de crédito (CU-W22).
+ * GET /api/v1/creditos/solicitudes/{id}/garantias
+ * @param {number|string} solicitudId
+ * @returns {Promise<Array<object>>} List[GarantiaOut]
+ */
+export async function listarGarantiasSolicitud(solicitudId) {
+  const { data } = await client.get(`/creditos/solicitudes/${solicitudId}/garantias`)
+  return data
+}
+
+/**
+ * Actualizar una garantía en estado REGISTRADA (CU-W22).
+ * PUT /api/v1/creditos/garantias/{id}
+ * @param {number|string} id
+ * @param {object} payload
+ * @returns {Promise<object>} GarantiaOut
+ */
+export async function actualizarGarantia(id, payload) {
+  const { data } = await client.put(`/creditos/garantias/${id}`, payload)
+  return data
+}
+
+/**
+ * Eliminar una garantía en estado REGISTRADA (CU-W22).
+ * DELETE /api/v1/creditos/garantias/{id}
+ * @param {number|string} id
+ * @returns {Promise<void>}
+ */
+export async function eliminarGarantia(id) {
+  await client.delete(`/creditos/garantias/${id}`)
+}
+
+/**
+ * Verificar o rechazar una garantía (Maker-Checker, exclusivo para Administrador) (CU-W22).
+ * POST /api/v1/creditos/garantias/{id}/verificacion
+ * @param {number|string} id
+ * @param {{ decision: 'VERIFICADA' | 'RECHAZADA', observacion: string }} payload
+ * @returns {Promise<object>} GarantiaOut
+ */
+export async function verificarGarantia(id, payload) {
+  const { data } = await client.post(`/creditos/garantias/${id}/verificacion`, payload)
+  return data
+}
+
+/**
+ * Obtener el estado y porcentaje de cobertura de garantías de una solicitud (CU-W22).
+ * GET /api/v1/creditos/solicitudes/{id}/cobertura
+ * @param {number|string} solicitudId
+ * @returns {Promise<{
+ *   requiere_garantia: boolean,
+ *   cobertura_minima: number|string,
+ *   monto_solicitado: number|string,
+ *   valor_realizable_verificado: number|string,
+ *   valor_realizable_pendiente: number|string,
+ *   porcentaje_cobertura: number|string,
+ *   cumple: boolean
+ * }>} CoberturaOut
+ */
+export async function getCoberturaSolicitud(solicitudId) {
+  const { data } = await client.get(`/creditos/solicitudes/${solicitudId}/cobertura`)
+  return data
+}
+
+/**
+ * Listar las garantías y avales asociados al crédito en cartera (CU-W22).
+ * GET /api/v1/creditos/creditos/{id}/garantias
+ * @param {number|string} creditoId
+ * @returns {Promise<Array<object>>} List[GarantiaOut]
+ */
+export async function listarGarantiasCredito(creditoId) {
+  const { data } = await client.get(`/creditos/creditos/${creditoId}/garantias`)
+  return data
+}
+
+

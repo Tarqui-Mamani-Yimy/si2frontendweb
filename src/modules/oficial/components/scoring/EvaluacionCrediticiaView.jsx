@@ -95,7 +95,7 @@ export default function EvaluacionCrediticiaView({
               Motor de Scoring de Riesgo
             </h3>
             <span className="text-[10px] text-slate-500 font-mono">
-              Modelo: {evaluacion?.version_modelo || 'reglas-v1'} &bull; Base normativa ASFI
+              Modelo: {evaluacion?.version_modelo || 'reglas-v2'} &bull; Base normativa ASFI
             </span>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function EvaluacionCrediticiaView({
             </h4>
             <p className="text-xs text-slate-500">
               El motor evaluará automáticamente la capacidad de pago, calificación ASFI, endeudamiento,
-              antigüedad laboral, cuentas de ahorro y mora interna (modelo reglas-v1).
+              antigüedad laboral, cuentas de ahorro, cobertura de garantías y mora interna (modelo reglas-v2).
             </p>
           </div>
 

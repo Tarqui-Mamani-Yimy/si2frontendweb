@@ -14,8 +14,9 @@ import {
 } from '../../../core/api/creditosApi'
 
 function formatMoney(value, simbolo = 'Bs.') {
-  const n = Number(value ?? 0)
-  return `${simbolo} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const n = typeof value === 'number' ? value : parseFloat(value ?? 0)
+  const safe = isNaN(n) ? 0 : n
+  return `${simbolo} ${safe.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function formatDate(isoStr) {
@@ -321,7 +322,7 @@ export default function AlertasPage() {
                 typeof item.moneda === 'object' ? item.moneda?.simbolo : item.moneda || 'Bs.'
               const iso =
                 typeof item.moneda === 'object' ? item.moneda?.codigo_iso : item.moneda || 'BOB'
-              const indice = Number(item.indice_mora ?? 0)
+              const indice = parseFloat(item.indice_mora ?? 0) || 0
               const esAlto = indice > 5
               const esMedio = indice > 2 && indice <= 5
 
@@ -365,7 +366,7 @@ export default function AlertasPage() {
                       </span>
                       <span
                         className={`font-mono font-bold text-sm block mt-0.5 ${
-                          Number(item.cartera_en_mora ?? 0) > 0 ? 'text-rose-600' : 'text-slate-700'
+                          parseFloat(item.cartera_en_mora ?? 0) > 0 ? 'text-rose-600' : 'text-slate-700'
                         }`}
                       >
                         {formatMoney(item.cartera_en_mora, sim)}
@@ -506,7 +507,7 @@ export default function AlertasPage() {
               <tbody className="divide-y divide-slate-100 text-[11px]">
                 {topRiesgo.map((t) => {
                   const socNombre = t.socio?.nombre_completo || `Socio #${t.socio?.id || '—'}`
-                  const prob = t.probabilidad_mora != null ? (Number(t.probabilidad_mora) * 100).toFixed(1) : '—'
+                  const prob = t.probabilidad_mora != null ? (parseFloat(t.probabilidad_mora) * 100).toFixed(1) : '—'
                   return (
                     <tr key={t.credito_id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-2.5 px-3 font-mono font-bold text-slate-900">

@@ -374,7 +374,9 @@ export default function AdminCreditosPage() {
                     <td className="px-4 py-3.5 text-xs">
                       <div>
                         {p.requiere_garantia ? (
-                          <Badge variant="amber">Garantía Requerida</Badge>
+                          <Badge variant="amber">
+                            Garantía ({parseFloat(p.cobertura_minima_garantia ?? 100).toFixed(0)}%)
+                          </Badge>
                         ) : (
                           <Badge variant="slate">Sin Garantía</Badge>
                         )}

@@ -8,6 +8,7 @@ import PlanPagosModal from '../creditos/PlanPagosModal'
 import DesembolsoModal from '../creditos/DesembolsoModal'
 import ComprobanteDesembolsoModal from '../creditos/ComprobanteDesembolsoModal'
 import ActaComiteModal from '../comite/ActaComiteModal'
+import GarantiasSection from '../garantias/GarantiasSection'
 import {
   evaluarSolicitud,
   listarEvaluaciones,
@@ -471,6 +472,24 @@ export default function DetalleSolicitudModal({
                 {currentSolicitud.ultima_evaluacion.dictamen}
               </Badge>
             ) : null}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('garantias')}
+            className={`px-4 py-2.5 text-xs font-bold transition-colors border-b-2 flex items-center gap-1.5 ${
+              activeTab === 'garantias'
+                ? 'border-[#064e3b] text-[#064e3b]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">shield</span>
+            <span>Garantías y Avales (CU-W22)</span>
+            {currentSolicitud.producto?.requiere_garantia && (
+              <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 font-semibold">
+                Requerida
+              </span>
+            )}
           </button>
         </div>
 
@@ -1004,6 +1023,24 @@ export default function DetalleSolicitudModal({
               </p>
             </div>
           )}
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════
+            PESTAÑA 3: GESTIÓN DE GARANTÍAS Y AVALES (CU-W22)
+           ══════════════════════════════════════════════════════════════ */}
+        <div className={activeTab === 'garantias' ? 'block' : 'hidden'}>
+          <GarantiasSection
+            solicitud={currentSolicitud}
+            onUpdated={async () => {
+              try {
+                const refreshed = await getSolicitudCredito(currentSolicitud.id)
+                setSolicitudOverride(refreshed)
+                onUpdated?.(refreshed)
+              } catch {
+                onUpdated?.(currentSolicitud)
+              }
+            }}
+          />
         </div>
       </Modal>
 

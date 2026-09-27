@@ -41,6 +41,7 @@ export default function ProductoCreditoModal({
     tasa_mora_anual: producto?.tasa_mora_anual != null ? String(producto.tasa_mora_anual) : '0.00',
     relacion_cuota_ingreso_max: producto?.relacion_cuota_ingreso_max != null ? String(producto.relacion_cuota_ingreso_max) : '40.00',
     requiere_garantia: Boolean(producto?.requiere_garantia ?? false),
+    cobertura_minima_garantia: producto?.cobertura_minima_garantia != null ? String(producto.cobertura_minima_garantia) : '100.00',
   }))
 
   const [errors, setErrors] = useState({})
@@ -131,6 +132,13 @@ export default function ProductoCreditoModal({
       errs.relacion_cuota_ingreso_max = 'Debe ser mayor a 0% y menor o igual a 100%.'
     }
 
+    if (form.requiere_garantia) {
+      const cobMin = parseFloat(form.cobertura_minima_garantia)
+      if (isNaN(cobMin) || cobMin < 0 || cobMin > 500) {
+        errs.cobertura_minima_garantia = 'Debe ser un porcentaje entre 0.00% y 500.00%.'
+      }
+    }
+
     return errs
   }
 
@@ -162,6 +170,7 @@ export default function ProductoCreditoModal({
         tasa_mora_anual: parseFloat(form.tasa_mora_anual).toFixed(2),
         relacion_cuota_ingreso_max: parseFloat(form.relacion_cuota_ingreso_max).toFixed(2),
         requiere_garantia: Boolean(form.requiere_garantia),
+        cobertura_minima_garantia: parseFloat(form.cobertura_minima_garantia || '100.00').toFixed(2),
       }
 
       if (isEdit) {
@@ -503,7 +512,7 @@ export default function ProductoCreditoModal({
         </div>
 
         {/* ── Sección 4: Requisitos Adicionales ── */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
           <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -521,6 +530,33 @@ export default function ProductoCreditoModal({
               </span>
             </div>
           </label>
+
+          {form.requiere_garantia && (
+            <div className="pt-3 border-t border-slate-200/80">
+              <FormField
+                id="cobertura_minima_garantia"
+                label="Cobertura Mínima de Garantía (%)"
+                required
+                error={errors.cobertura_minima_garantia}
+              >
+                <Input
+                  id="cobertura_minima_garantia"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="500"
+                  value={form.cobertura_minima_garantia}
+                  onChange={(e) => handleChange('cobertura_minima_garantia', e.target.value)}
+                  placeholder="100.00"
+                  hasError={Boolean(errors.cobertura_minima_garantia)}
+                  className="tabular-nums"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  Porcentaje mínimo sobre el monto solicitado que debe cubrir el valor realizable de las garantías verificadas (ej. 100% para microcrédito, 125% para vivienda).
+                </span>
+              </FormField>
+            </div>
+          )}
         </div>
       </form>
     </Modal>

@@ -30,6 +30,9 @@ export default function KnockoutsList({ knockouts = [] }) {
           >
             <div className="space-y-0.5">
               <div className="flex items-center gap-1.5">
+                {ko.codigo === 'GARANTIA_INSUFICIENTE' && (
+                  <span className="material-symbols-outlined text-[15px] text-amber-700">shield_lock</span>
+                )}
                 <span className="font-mono text-[11px] font-bold text-rose-900">
                   {ko.codigo}
                 </span>
