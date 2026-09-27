@@ -203,3 +203,55 @@ export async function resolverSolicitud(id, payload) {
   return data
 }
 
+/**
+ * Obtener la simulación previa del plan de pagos / cronograma de amortización de una solicitud aprobada (CU-W24).
+ * GET /api/v1/creditos/solicitudes/{id}/plan-pagos?fecha_desembolso=&fecha_primer_vencimiento=
+ * @param {number|string} solicitudId
+ * @param {{ fecha_desembolso?: string, fecha_primer_vencimiento?: string }} params
+ * @returns {Promise<object>} PlanPagosOut
+ */
+export async function getPlanPagos(solicitudId, params = {}) {
+  const { data } = await client.get(`/creditos/solicitudes/${solicitudId}/plan-pagos`, { params })
+  return data
+}
+
+/**
+ * Ejecutar el desembolso de un crédito aprobado en cuenta de ahorro o en ventanilla (CU-W26).
+ * POST /api/v1/creditos/solicitudes/{id}/desembolso
+ * @param {number|string} solicitudId
+ * @param {{
+ *   modalidad: 'CUENTA' | 'EFECTIVO',
+ *   cuenta_ahorro_id?: number,
+ *   fecha_primer_vencimiento?: string,
+ *   declaracion_uif?: object
+ * }} payload
+ * @returns {Promise<object>} CreditoDetalleOut
+ */
+export async function desembolsarSolicitud(solicitudId, payload) {
+  const { data } = await client.post(`/creditos/solicitudes/${solicitudId}/desembolso`, payload)
+  return data
+}
+
+/**
+ * Listar la cartera de créditos de la cooperativa.
+ * GET /api/v1/creditos/creditos?estado=&socio_ci=
+ * @param {{ estado?: string, socio_ci?: string }} params
+ * @returns {Promise<Array<object>>} List[CreditoOut]
+ */
+export async function listarCreditos(params = {}) {
+  const { data } = await client.get('/creditos/creditos', { params })
+  return data
+}
+
+/**
+ * Obtener el detalle completo de un crédito, incluyendo su cronograma de amortización y desembolso.
+ * GET /api/v1/creditos/creditos/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>} CreditoDetalleOut
+ */
+export async function getCredito(id) {
+  const { data } = await client.get(`/creditos/creditos/${id}`)
+  return data
+}
+
+

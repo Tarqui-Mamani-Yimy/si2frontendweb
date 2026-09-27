@@ -4,6 +4,9 @@ import Button from '../../../../components/ui/Button'
 import Badge from '../../../../components/ui/Badge'
 import EvaluacionCrediticiaView from '../scoring/EvaluacionCrediticiaView'
 import ResolverDictamenModal from '../scoring/ResolverDictamenModal'
+import PlanPagosModal from '../creditos/PlanPagosModal'
+import DesembolsoModal from '../creditos/DesembolsoModal'
+import ComprobanteDesembolsoModal from '../creditos/ComprobanteDesembolsoModal'
 import {
   evaluarSolicitud,
   listarEvaluaciones,
@@ -102,6 +105,12 @@ export default function DetalleSolicitudModal({
 
   // Modal de resolución administrativa (para Administrador)
   const [resolverModalOpen, setResolverModalOpen] = useState(false)
+
+  // Modales de Plan de Pagos, Desembolso y Comprobante (CU-W24 / CU-W26)
+  const [planPagosModalOpen, setPlanPagosModalOpen] = useState(false)
+  const [desembolsoModalOpen, setDesembolsoModalOpen] = useState(false)
+  const [comprobanteModalOpen, setComprobanteModalOpen] = useState(false)
+  const [creditoDesembolsado, setCreditoDesembolsado] = useState(null)
 
   // Cargar historial de evaluaciones al abrir o cambiar de solicitud
   useEffect(() => {
@@ -228,6 +237,17 @@ export default function DetalleSolicitudModal({
     onUpdated?.(updatedSol)
   }
 
+  function handleDesembolsoSuccess(credito) {
+    const updatedSol = {
+      ...currentSolicitud,
+      estado: 'DESEMBOLSADO',
+    }
+    setSolicitudOverride(updatedSol)
+    onUpdated?.(updatedSol)
+    setCreditoDesembolsado(credito)
+    setComprobanteModalOpen(true)
+  }
+
   return (
     <>
       <Modal
@@ -259,6 +279,36 @@ export default function DetalleSolicitudModal({
                   {activeTab === 'scoring' ? 'Imprimir Scoring' : 'Imprimir Formulario'}
                 </span>
               </Button>
+
+              {/* Botón Plan de Pagos / Amortización (CU-W24) */}
+              {(currentSolicitud.estado === 'APROBADO' || currentSolicitud.estado === 'DESEMBOLSADO') && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPlanPagosModalOpen(true)}
+                  type="button"
+                  className="gap-1.5 text-emerald-800 border-emerald-300 hover:bg-emerald-50"
+                  title="Ver y proyectar cronograma de amortización"
+                >
+                  <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+                  <span>Plan de Pagos</span>
+                </Button>
+              )}
+
+              {/* Botón Desembolsar (CU-W26) */}
+              {currentSolicitud.estado === 'APROBADO' && canEval && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setDesembolsoModalOpen(true)}
+                  type="button"
+                  className="gap-1.5 bg-[#064e3b] hover:bg-[#043327] text-white shadow-sm"
+                  title="Ejecutar desembolso del crédito aprobado en cuenta o ventanilla"
+                >
+                  <span className="material-symbols-outlined text-[16px]">payments</span>
+                  <span>Desembolsar</span>
+                </Button>
+              )}
 
               {/* Botón Resolver para Administrador */}
               {canResolve && (
@@ -413,6 +463,69 @@ export default function DetalleSolicitudModal({
                   Solicitud Anulada
                 </span>
                 <p className="text-xs">{currentSolicitud.motivo_anulacion}</p>
+              </div>
+            )}
+
+            {/* Banner de Crédito Aprobado listo para Desembolso */}
+            {currentSolicitud.estado === 'APROBADO' && (
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50/80 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 shrink-0">
+                    <span className="material-symbols-outlined text-xl">verified</span>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-emerald-950">Solicitud Aprobada &bull; Lista para Desembolso</h4>
+                    <p className="text-xs text-emerald-800">
+                      Esta solicitud cuenta con dictamen aprobatorio. Puede previsualizar e imprimir el cronograma de cuotas o proceder con el desembolso de fondos.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setPlanPagosModalOpen(true)}
+                    type="button"
+                    className="gap-1.5 bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-100"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">calendar_month</span>
+                    <span>Plan de Pagos</span>
+                  </Button>
+                  {canEval && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setDesembolsoModalOpen(true)}
+                      type="button"
+                      className="gap-1.5 bg-[#064e3b] hover:bg-[#043327] text-white"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">payments</span>
+                      <span>Desembolsar</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Banner de Crédito Desembolsado */}
+            {currentSolicitud.estado === 'DESEMBOLSADO' && (
+              <div className="rounded-xl border border-teal-300 bg-teal-50/80 p-3.5 shadow-sm flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-teal-900">
+                  <span className="material-symbols-outlined text-xl text-teal-700">check_circle</span>
+                  <span className="text-xs font-semibold">
+                    Crédito desembolsado exitosamente. Puede consultar las cuotas en la sección de Cartera.
+                  </span>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPlanPagosModalOpen(true)}
+                  type="button"
+                  className="gap-1.5 bg-white text-teal-900 border-teal-300 hover:bg-teal-100 text-xs"
+                >
+                  <span className="material-symbols-outlined text-[15px]">calendar_month</span>
+                  <span>Ver Plan</span>
+                </Button>
               </div>
             )}
 
@@ -800,6 +913,34 @@ export default function DetalleSolicitudModal({
           solicitud={currentSolicitud}
           evaluacion={evaluacionActiva}
           onSuccess={handleResolverSuccess}
+        />
+      )}
+
+      {/* Modal de Plan de Pagos / Amortización (CU-W24) */}
+      {planPagosModalOpen && (
+        <PlanPagosModal
+          open={planPagosModalOpen}
+          onClose={() => setPlanPagosModalOpen(false)}
+          solicitud={currentSolicitud}
+        />
+      )}
+
+      {/* Modal de Desembolso (CU-W26) */}
+      {desembolsoModalOpen && (
+        <DesembolsoModal
+          open={desembolsoModalOpen}
+          onClose={() => setDesembolsoModalOpen(false)}
+          solicitud={currentSolicitud}
+          onSuccess={handleDesembolsoSuccess}
+        />
+      )}
+
+      {/* Comprobante de Desembolso Imprimible (CU-W26) */}
+      {comprobanteModalOpen && creditoDesembolsado && (
+        <ComprobanteDesembolsoModal
+          open={comprobanteModalOpen}
+          onClose={() => setComprobanteModalOpen(false)}
+          credito={creditoDesembolsado}
         />
       )}
     </>
