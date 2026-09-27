@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', path: '/oficial/dashboard' },
   { label: 'Solicitudes', path: '/oficial/solicitudes' },
   { label: 'Cartera', path: '/oficial/cartera' },
+  { label: 'Alertas', path: '/oficial/alertas' },
   { label: 'Re-créditos', path: '/oficial/recreditos' },
   { label: 'Comité', path: '/oficial/comite' },
   { label: 'Plazo Fijo', path: '/oficial/plazo-fijo' },

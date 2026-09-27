@@ -451,3 +451,86 @@ export async function getActaComite(solicitudId) {
   const { data } = await client.get(`/creditos/solicitudes/${solicitudId}/acta-comite`)
   return data
 }
+
+/**
+ * Ejecutar corrida bajo demanda de monitoreo predictivo de mora y generación de alertas (CU-W28).
+ * POST /api/v1/creditos/alertas/monitoreo
+ * @returns {Promise<{
+ *   fecha: string,
+ *   creditos_monitoreados: number,
+ *   alertas_creadas: number,
+ *   alertas_resueltas: number,
+ *   activas_por_severidad: { INFO: number, ADVERTENCIA: number, CRITICA: number }
+ * }>}
+ */
+export async function ejecutarMonitoreoMora() {
+  const { data } = await client.post('/creditos/alertas/monitoreo')
+  return data
+}
+
+/**
+ * Listar alertas de mora de la cartera de créditos con filtros opcionales (CU-W28).
+ * GET /api/v1/creditos/alertas?estado=&tipo=&severidad=
+ * @param {{ estado?: string, tipo?: string, severidad?: string }} params
+ * @returns {Promise<Array<object>>} List[AlertaOut]
+ */
+export async function listarAlertas(params = {}) {
+  const { data } = await client.get('/creditos/alertas', { params })
+  return data
+}
+
+/**
+ * Registrar una acción de gestión de cobranza y marcar la alerta como ATENDIDA (CU-W28).
+ * POST /api/v1/creditos/alertas/{id}/atender
+ * @param {number|string} id
+ * @param {{
+ *   tipo_contacto: 'LLAMADA' | 'VISITA' | 'MENSAJE' | 'OTRO',
+ *   resultado_gestion: string,
+ *   fecha_compromiso_pago?: string | null
+ * }} payload
+ * @returns {Promise<object>} AlertaOut
+ */
+export async function atenderAlerta(id, payload) {
+  const { data } = await client.post(`/creditos/alertas/${id}/atender`, payload)
+  return data
+}
+
+/**
+ * Descartar una alerta de mora activa con justificación obligatoria (CU-W28).
+ * POST /api/v1/creditos/alertas/{id}/descartar
+ * @param {number|string} id
+ * @param {{ comentario: string }} payload
+ * @returns {Promise<object>} AlertaOut
+ */
+export async function descartarAlerta(id, payload) {
+  const { data } = await client.post(`/creditos/alertas/${id}/descartar`, payload)
+  return data
+}
+
+/**
+ * Obtener el historial completo de gestiones de cobranza de un crédito (CU-W28).
+ * GET /api/v1/creditos/creditos/{id}/gestiones
+ * @param {number|string} creditoId
+ * @returns {Promise<Array<object>>} List[GestionOut]
+ */
+export async function listarGestionesCredito(creditoId) {
+  const { data } = await client.get(`/creditos/creditos/${creditoId}/gestiones`)
+  return data
+}
+
+/**
+ * Obtener el resumen ejecutivo del monitoreo de cartera, mora por moneda, niveles de riesgo y alertas (CU-W28).
+ * GET /api/v1/creditos/monitoreo/resumen
+ * @returns {Promise<{
+ *   por_moneda: Array<{ moneda: object|string, cartera_total: number, cartera_en_mora: number, indice_mora: number }>,
+ *   creditos_por_riesgo: { BAJO: number, MEDIO: number, ALTO: number, SIN_PREDICCION: number },
+ *   alertas_activas: { INFO: number, ADVERTENCIA: number, CRITICA: number },
+ *   top_riesgo: Array<{ credito_id: number, numero_credito: string, socio: object, probabilidad_mora: number, nivel_riesgo: string, saldo_pendiente: number }>,
+ *   ultima_ejecucion: string | null
+ * }>}
+ */
+export async function getResumenMonitoreo() {
+  const { data } = await client.get('/creditos/monitoreo/resumen')
+  return data
+}
+
