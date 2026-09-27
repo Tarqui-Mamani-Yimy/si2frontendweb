@@ -99,3 +99,44 @@ export async function procesarLiquidacionDpf(id, payload) {
   const { data } = await client.post(`/dpf/${id}/liquidacion`, payload)
   return data
 }
+
+/**
+ * Ejecutar la corrida de pago de intereses periódicos devengados de DPFs mensuales (CU-W18).
+ * POST /api/v1/dpf/intereses/procesar
+ * @param {{ fecha?: string }} [payload] Fecha opcional (YYYY-MM-DD <= hoy)
+ * @returns {Promise<{
+ *   fecha: string,
+ *   dpf_procesados: number,
+ *   cuotas_pagadas: number,
+ *   total_neto_por_moneda: Array<{ moneda: object|string, total: number|string }>,
+ *   pagos: Array<object>,
+ *   omitidos: Array<{ dpf_id: number, numero_certificado: string, motivo: string }>
+ * }>}
+ */
+export async function procesarInteresesDpf(payload = {}) {
+  const { data } = await client.post('/dpf/intereses/procesar', payload)
+  return data
+}
+
+/**
+ * Listar el historial de pagos de intereses de DPF de la cooperativa (CU-W18).
+ * GET /api/v1/dpf/intereses/pagos?desde=&hasta=
+ * @param {{ desde?: string, hasta?: string }} [params]
+ * @returns {Promise<Array<object>>} List[PagoInteresOut]
+ */
+export async function listarPagosInteres(params = {}) {
+  const { data } = await client.get('/dpf/intereses/pagos', { params })
+  return data
+}
+
+/**
+ * Obtener el historial de pagos de intereses de un DPF específico (CU-W18).
+ * GET /api/v1/dpf/{id}/intereses
+ * @param {number|string} id
+ * @returns {Promise<Array<object>>} List[PagoInteresOut]
+ */
+export async function listarInteresesDpf(id) {
+  const { data } = await client.get(`/dpf/${id}/intereses`)
+  return data
+}
+

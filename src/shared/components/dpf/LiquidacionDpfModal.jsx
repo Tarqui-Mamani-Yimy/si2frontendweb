@@ -6,8 +6,9 @@ import Skeleton from '../../../components/ui/Skeleton'
 import { previewLiquidacionDpf, procesarLiquidacionDpf } from '../../../core/api/dpfApi'
 
 function formatMoney(value, simbolo = 'Bs.') {
-  const n = Number(value ?? 0)
-  return `${simbolo} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const n = typeof value === 'number' ? value : parseFloat(value ?? 0)
+  const safe = isNaN(n) ? 0 : n
+  return `${simbolo} ${safe.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 /**
@@ -246,6 +247,37 @@ export default function LiquidacionDpfModal({ open, onClose, dpf, onSuccess }) {
                 </span>
               </div>
             </div>
+
+            {/* Ajuste por Intereses Periódicos Pagados (CU-W18) */}
+            {(parseFloat(preview.interes_ya_pagado ?? 0) > 0 || parseFloat(preview.descuento_capital ?? 0) > 0) && (
+              <div className="p-3 rounded-lg bg-indigo-50/70 border border-indigo-200 text-indigo-950 space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <span className="material-symbols-outlined text-indigo-700 text-[16px]">account_balance</span>
+                  <span>Ajuste por Intereses Periódicos Pagados (CU-W18)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                  <div>
+                    <span className="text-slate-500 block">Intereses periódicos ya abonados:</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {formatMoney(preview.interes_ya_pagado, sim)}
+                    </span>
+                  </div>
+                  {parseFloat(preview.descuento_capital ?? 0) > 0 && (
+                    <div>
+                      <span className="text-rose-600 block font-semibold">Deducción sobre capital devuelto:</span>
+                      <span className="font-mono font-bold text-rose-700">
+                        -{formatMoney(preview.descuento_capital, sim)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {parseFloat(preview.descuento_capital ?? 0) > 0 && (
+                  <p className="text-[10px] text-rose-800 italic pt-1 border-t border-indigo-200/50">
+                    Al cancelarse anticipadamente, los intereses periódicos ya abonados superaron los intereses recalculados con penalización; la diferencia se deduce del capital devuelto conforme a normativa.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Cuenta de Abono */}
             <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
