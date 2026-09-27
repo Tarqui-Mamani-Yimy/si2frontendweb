@@ -116,6 +116,7 @@ export default function AppRouter() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<CajeroDashboardPage />} />
             <Route path="caja" element={<CajeroCajaPage />} />
+            <Route path="cartera" element={<CarteraPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
           </Route>

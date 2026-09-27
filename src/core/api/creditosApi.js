@@ -254,4 +254,78 @@ export async function getCredito(id) {
   return data
 }
 
+/**
+ * Obtener la liquidación de la próxima cuota a cobrar con cálculo de mora y atraso (CU-W27).
+ * GET /api/v1/creditos/creditos/{id}/deuda?fecha=YYYY-MM-DD
+ * @param {number|string} id
+ * @param {{ fecha?: string }} params
+ * @returns {Promise<object>} DeudaCuotaOut
+ */
+export async function getDeudaCredito(id, params = {}) {
+  const { data } = await client.get(`/creditos/creditos/${id}/deuda`, { params })
+  return data
+}
+
+/**
+ * Registrar el cobro de la siguiente cuota exigible en efectivo o débito en cuenta (CU-W27).
+ * POST /api/v1/creditos/creditos/{id}/pagos
+ * @param {number|string} id
+ * @param {{
+ *   modalidad: 'EFECTIVO' | 'CUENTA',
+ *   cuenta_ahorro_id?: number,
+ *   declaracion_uif?: object
+ * }} payload
+ * @returns {Promise<object>} PagoOut
+ */
+export async function pagarCuota(id, payload) {
+  const { data } = await client.post(`/creditos/creditos/${id}/pagos`, payload)
+  return data
+}
+
+/**
+ * Listar el historial de pagos efectuados sobre un crédito (CU-W27).
+ * GET /api/v1/creditos/creditos/{id}/pagos
+ * @param {number|string} id
+ * @returns {Promise<Array<object>>} List[PagoOut]
+ */
+export async function listarPagos(id) {
+  const { data } = await client.get(`/creditos/creditos/${id}/pagos`)
+  return data
+}
+
+/**
+ * Obtener el detalle de un pago específico para reimpresión de comprobante (CU-W27).
+ * GET /api/v1/creditos/pagos/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>} PagoOut
+ */
+export async function getPago(id) {
+  const { data } = await client.get(`/creditos/pagos/${id}`)
+  return data
+}
+
+/**
+ * Ejecutar la actualización masiva de morosidad para todos los créditos vigentes de la cooperativa (CU-W27).
+ * POST /api/v1/creditos/mora/actualizar
+ * @returns {Promise<{ actualizados: number, en_mora: number, al_dia: number, fecha: string }>}
+ */
+export async function actualizarMora() {
+  const { data } = await client.post('/creditos/mora/actualizar')
+  return data
+}
+
+/**
+ * Listar los créditos en mora o al día para seguimiento de cartera en riesgo (CU-W27).
+ * GET /api/v1/creditos/mora?estado=EN_MORA|AL_DIA
+ * @param {{ estado?: 'EN_MORA' | 'AL_DIA' }} params
+ * @returns {Promise<Array<object>>} List[MoraCreditoOut]
+ */
+export async function listarMora(params = {}) {
+  const queryParams = {}
+  if (params?.estado) queryParams.estado = params.estado
+  const { data } = await client.get('/creditos/mora', { params: queryParams })
+  return data
+}
+
+
 
