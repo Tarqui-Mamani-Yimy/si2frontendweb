@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import Button from '../../../../components/ui/Button'
 import Badge from '../../../../components/ui/Badge'
 import AlertBanner from '../../../../components/ui/AlertBanner'
 import ScoreGauge from './ScoreGauge'
 import KnockoutsList from './KnockoutsList'
 import FactoresTable from './FactoresTable'
+import ModeloMoraModal from '../recreditos/ModeloMoraModal'
+import ExplicacionDictamenModal from '../recreditos/ExplicacionDictamenModal'
 
 function formatDate(isoStr) {
   if (!isoStr) return '—'
@@ -63,6 +66,9 @@ export default function EvaluacionCrediticiaView({
   canEval = true,
   onPrintScoring,
 }) {
+  const [modeloMoraModalOpen, setModeloMoraModalOpen] = useState(false)
+  const [explicacionModalOpen, setExplicacionModalOpen] = useState(false)
+
   const esEvaluable =
     solicitud?.estado === 'PENDIENTE' ||
     solicitud?.estado === 'OBSERVADA' ||
@@ -111,6 +117,21 @@ export default function EvaluacionCrediticiaView({
                 ))}
               </select>
             </div>
+          )}
+
+          {/* Botón Explicación en Lenguaje Natural (CU-W23 p2) */}
+          {evaluacion && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setExplicacionModalOpen(true)}
+              className="gap-1 !text-xs !py-1 !px-2.5 text-indigo-800 border-indigo-200 hover:bg-indigo-50"
+              title="Ver explicación en lenguaje natural del dictamen"
+            >
+              <span className="material-symbols-outlined text-[15px]">record_voice_over</span>
+              <span>Explicación</span>
+            </Button>
           )}
 
           {/* Botón Imprimir Dictamen de Scoring */}
@@ -258,6 +279,69 @@ export default function EvaluacionCrediticiaView({
             </div>
           </div>
 
+          {/* ── Tarjeta de Modelo Predictivo de Mora (Sintético / Informativo - CU-W23 p2) ── */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-indigo-50 p-2 text-indigo-700 shrink-0">
+                <span className="material-symbols-outlined text-xl">psychology</span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                    Probabilidad de Mora Estimada
+                  </h4>
+                  <Badge variant="indigo" className="!text-[9px] !py-0 !px-1.5 font-bold">
+                    Modelo sintético (informativo)
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Estimación predictiva auxiliar calculada con modelo logístico ({evaluacion.version_modelo_mora || 'mora-logit-v1'}). No altera scores ni dictamen ASFI.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0 flex-wrap">
+              <div className="text-right">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Probabilidad</span>
+                <span className="font-mono font-bold text-slate-900 text-sm">
+                  {evaluacion.probabilidad_mora != null
+                    ? `${(Number(evaluacion.probabilidad_mora) * 100).toFixed(1)}%`
+                    : 'No calculada'}
+                </span>
+              </div>
+
+              {evaluacion.nivel_riesgo && (
+                <div className="text-center">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Nivel de Riesgo</span>
+                  <Badge
+                    variant={
+                      evaluacion.nivel_riesgo === 'ALTO'
+                        ? 'red'
+                        : evaluacion.nivel_riesgo === 'MEDIO'
+                        ? 'amber'
+                        : 'green'
+                    }
+                    className="font-bold text-xs !py-0.5 !px-2.5"
+                  >
+                    {evaluacion.nivel_riesgo}
+                  </Badge>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setModeloMoraModalOpen(true)}
+                className="gap-1 !text-xs !py-1 !px-2 text-slate-600 hover:text-slate-900"
+                title="Ver ficha técnica del modelo y dataset sintético"
+              >
+                <span className="material-symbols-outlined text-[15px]">info</span>
+                <span>Acerca del modelo</span>
+              </Button>
+            </div>
+          </div>
+
           {/* Banner de Resolución Pendiente para Administrador */}
           {canResolve && evaluacion.dictamen === 'REVISION_MANUAL' && !evaluacion.resolucion && (
             <div className="p-4 rounded-xl border border-amber-300 bg-amber-50/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -339,6 +423,23 @@ export default function EvaluacionCrediticiaView({
           {/* Desglose de Factores Ponderados */}
           <FactoresTable factores={evaluacion.factores} />
         </div>
+      )}
+
+      {/* ── Modal Ficha Técnica Modelo de Mora (CU-W23 p2) ── */}
+      {modeloMoraModalOpen && (
+        <ModeloMoraModal
+          open={modeloMoraModalOpen}
+          onClose={() => setModeloMoraModalOpen(false)}
+        />
+      )}
+
+      {/* ── Modal Explicación en Lenguaje Natural (CU-W23 p2) ── */}
+      {explicacionModalOpen && evaluacion && (
+        <ExplicacionDictamenModal
+          open={explicacionModalOpen}
+          onClose={() => setExplicacionModalOpen(false)}
+          evaluacionId={evaluacion.id}
+        />
       )}
     </div>
   )

@@ -52,6 +52,7 @@ import OficialDashboardPage from '../modules/oficial/pages/DashboardPage'
 import OficialSociosPage from '../modules/oficial/pages/SociosPage'
 import OficialSolicitudesPage from '../modules/oficial/pages/SolicitudesPage'
 import CarteraPage from '../modules/oficial/pages/CarteraPage'
+import RecreditosPage from '../modules/oficial/pages/RecreditosPage'
 
 // ── Contador ──────────────────────────────────────────────────
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
@@ -103,6 +104,7 @@ export default function AppRouter() {
             <Route path="socios/nuevo" element={<RegistrarSocioPage />} />
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
+            <Route path="recreditos" element={<RecreditosPage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
@@ -129,6 +131,7 @@ export default function AppRouter() {
             <Route path="dashboard" element={<OficialDashboardPage />} />
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
+            <Route path="recreditos" element={<RecreditosPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />

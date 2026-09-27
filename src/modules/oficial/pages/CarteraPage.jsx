@@ -10,6 +10,7 @@ import {
   listarCreditos,
   listarMora,
   actualizarMora,
+  predecirMoraCartera,
 } from '../../../core/api/creditosApi'
 import { useAuthStore, selectUser } from '../../../core/store/authStore'
 import { normalizeRole } from '../../../core/utils/roles'
@@ -90,6 +91,7 @@ export default function CarteraPage() {
   const [errorMora, setErrorMora] = useState(null)
   const [filtroEstadoMora, setFiltroEstadoMora] = useState('EN_MORA')
   const [actualizandoMora, setActualizandoMora] = useState(false)
+  const [prediciendoMora, setPrediciendoMora] = useState(false)
   const [bannerMora, setBannerMora] = useState(null)
 
   // ── Modal de Detalle / Cobro / Cronograma ──
@@ -231,6 +233,26 @@ export default function CarteraPage() {
       })
     } finally {
       setActualizandoMora(false)
+    }
+  }
+
+  async function handleEjecutarPredecirMora() {
+    setPrediciendoMora(true)
+    setBannerMora(null)
+    try {
+      const res = await predecirMoraCartera()
+      setBannerMora({
+        tipo: 'success',
+        mensaje: `Predicción de mora ejecutada con éxito: ${res.actualizados ?? 0} créditos vigentes procesados (${res.bajo ?? 0} riesgo bajo, ${res.medio ?? 0} medio, ${res.alto ?? 0} alto).`,
+      })
+      reloadMora()
+    } catch (err) {
+      setBannerMora({
+        tipo: 'error',
+        mensaje: err.response?.data?.detail || 'Error al ejecutar la predicción de morosidad.',
+      })
+    } finally {
+      setPrediciendoMora(false)
     }
   }
 
@@ -657,18 +679,33 @@ export default function CarteraPage() {
             </div>
 
             {canRefreshMora && (
-              <Button
-                type="button"
-                variant="primary"
-                size="md"
-                loading={actualizandoMora}
-                onClick={handleEjecutarActualizarMora}
-                className="gap-2 bg-amber-700 hover:bg-amber-800 text-white w-full sm:w-auto"
-                title="Recalcular morosidad, días de retraso e interés penal de todos los créditos vigentes"
-              >
-                <span className="material-symbols-outlined text-[18px]">update</span>
-                <span>Actualizar Morosidad</span>
-              </Button>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  loading={prediciendoMora}
+                  onClick={handleEjecutarPredecirMora}
+                  className="gap-2 text-indigo-900 border-indigo-200 hover:bg-indigo-50 w-full sm:w-auto"
+                  title="Calcular probabilidad predictiva de mora con modelo sintético (CU-W23 p2)"
+                >
+                  <span className="material-symbols-outlined text-[18px]">psychology</span>
+                  <span>Predecir Mora (IA)</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  loading={actualizandoMora}
+                  onClick={handleEjecutarActualizarMora}
+                  className="gap-2 bg-amber-700 hover:bg-amber-800 text-white w-full sm:w-auto"
+                  title="Recalcular morosidad, días de retraso e interés penal de todos los créditos vigentes"
+                >
+                  <span className="material-symbols-outlined text-[18px]">update</span>
+                  <span>Actualizar Morosidad</span>
+                </Button>
+              </div>
             )}
           </div>
 
@@ -702,6 +739,12 @@ export default function CarteraPage() {
                     Estado Mora
                   </th>
                   <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+                    Mora Sintética *
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+                    Nivel Riesgo *
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
                     Última Actualización
                   </th>
                   <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
@@ -712,7 +755,7 @@ export default function CarteraPage() {
               <tbody className="divide-y divide-[#e2e8f0]/80">
                 {loadingMora ? (
                   <tr>
-                    <td colSpan={10} className="p-6">
+                    <td colSpan={12} className="p-6">
                       <div className="space-y-3">
                         <Skeleton className="h-6 w-full" />
                         <Skeleton className="h-6 w-full" />
@@ -722,7 +765,7 @@ export default function CarteraPage() {
                   </tr>
                 ) : moraItems.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-sm text-slate-400">
+                    <td colSpan={12} className="px-6 py-12 text-center text-sm text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-[36px] text-slate-300">verified</span>
                         <span className="font-semibold text-slate-600">No se registran créditos bajo este criterio</span>
@@ -788,6 +831,33 @@ export default function CarteraPage() {
                           </Badge>
                         </td>
 
+                        {/* Mora Sintética */}
+                        <td className="px-4 py-3.5 text-center font-mono font-bold text-slate-800 text-[11px]">
+                          {m.probabilidad_mora != null
+                            ? `${(Number(m.probabilidad_mora) * 100).toFixed(1)}%`
+                            : '—'}
+                        </td>
+
+                        {/* Nivel Riesgo */}
+                        <td className="px-4 py-3.5 text-center">
+                          {m.nivel_riesgo ? (
+                            <Badge
+                              variant={
+                                m.nivel_riesgo === 'ALTO'
+                                  ? 'red'
+                                  : m.nivel_riesgo === 'MEDIO'
+                                  ? 'amber'
+                                  : 'green'
+                              }
+                              className="!text-[9px] !py-0 !px-1.5 font-bold"
+                            >
+                              {m.nivel_riesgo}
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">—</span>
+                          )}
+                        </td>
+
                         {/* Fecha Actualización */}
                         <td className="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px] whitespace-nowrap">
                           {formatDateTime(m.fecha_actualizacion)}
@@ -827,6 +897,9 @@ export default function CarteraPage() {
                 )}
               </tbody>
             </table>
+            <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-400">
+              * Estimación predictiva de mora y nivel de riesgo calculados con modelo sintético (informativo). No altera el estado fiduciario oficial ni las regulaciones ASFI.
+            </div>
           </div>
         </div>
       )}

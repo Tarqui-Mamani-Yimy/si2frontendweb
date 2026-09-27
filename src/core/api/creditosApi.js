@@ -327,5 +327,98 @@ export async function listarMora(params = {}) {
   return data
 }
 
+/**
+ * Generar ofertas de re-crédito proactivas para socios con buen comportamiento de pago (CU-W23 p2).
+ * POST /api/v1/creditos/recreditos/generar
+ * @returns {Promise<{ generadas: number, omitidas: number, ofertas: Array<object> }>}
+ */
+export async function generarRecreditos() {
+  const { data } = await client.post('/creditos/recreditos/generar')
+  return data
+}
+
+/**
+ * Listar ofertas de re-crédito registradas en la cooperativa (CU-W23 p2).
+ * GET /api/v1/creditos/recreditos?estado=VIGENTE|ACEPTADA|DESCARTADA|EXPIRADA
+ * @param {{ estado?: string }} params
+ * @returns {Promise<Array<object>>} List[OfertaOut]
+ */
+export async function listarRecreditos(params = {}) {
+  const queryParams = {}
+  if (params?.estado) queryParams.estado = params.estado
+  const { data } = await client.get('/creditos/recreditos', { params: queryParams })
+  return data
+}
+
+/**
+ * Aceptar una oferta de re-crédito preaprobada generando una solicitud de crédito en estado PENDIENTE (CU-W23 p2).
+ * POST /api/v1/creditos/recreditos/{id}/aceptar
+ * @param {number|string} id
+ * @returns {Promise<{ oferta: object, solicitud: object }>}
+ */
+export async function aceptarRecredito(id) {
+  const { data } = await client.post(`/creditos/recreditos/${id}/aceptar`)
+  return data
+}
+
+/**
+ * Descartar una oferta de re-crédito con justificación formal (CU-W23 p2).
+ * POST /api/v1/creditos/recreditos/{id}/descartar
+ * @param {number|string} id
+ * @param {{ motivo: string }} payload
+ * @returns {Promise<object>} OfertaOut
+ */
+export async function descartarRecredito(id, payload) {
+  const { data } = await client.post(`/creditos/recreditos/${id}/descartar`, payload)
+  return data
+}
+
+/**
+ * Consultar la ficha técnica / model card del modelo de probabilidad de mora (CU-W23 p2).
+ * GET /api/v1/creditos/modelo-mora
+ * @returns {Promise<{
+ *   version: string,
+ *   dataset: string,
+ *   descripcion_dataset: string,
+ *   n_muestras: number,
+ *   semilla: number,
+ *   metricas: { auc: number, accuracy: number },
+ *   features: Array<{ nombre: string, descripcion: string, coeficiente: number }>,
+ *   umbrales: { bajo: number, medio: number },
+ *   advertencia: string
+ * }>}
+ */
+export async function getModeloMora() {
+  const { data } = await client.get('/creditos/modelo-mora')
+  return data
+}
+
+/**
+ * Ejecutar la predicción masiva de morosidad con modelo sintético para los créditos vigentes (CU-W23 p2).
+ * POST /api/v1/creditos/mora/prediccion
+ * @returns {Promise<{ actualizados: number, bajo: number, medio: number, alto: number }>}
+ */
+export async function predecirMoraCartera() {
+  const { data } = await client.post('/creditos/mora/prediccion')
+  return data
+}
+
+/**
+ * Obtener la explicación en lenguaje natural del dictamen crediticio (CU-W23 p2).
+ * GET /api/v1/creditos/evaluaciones/{id}/explicacion
+ * @param {number|string} id
+ * @returns {Promise<{
+ *   fuente: 'PLANTILLA' | 'LLM',
+ *   texto: string,
+ *   nivel_riesgo: string|null,
+ *   probabilidad_mora: number|null
+ * }>}
+ */
+export async function getExplicacionDictamen(id) {
+  const { data } = await client.get(`/creditos/evaluaciones/${id}/explicacion`)
+  return data
+}
+
+
 
 
