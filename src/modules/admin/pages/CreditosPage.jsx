@@ -349,6 +349,9 @@ export default function AdminCreditosPage() {
                     <td className="px-4 py-3.5 text-xs text-right font-display font-semibold text-slate-900 tabular-nums">
                       <span className="block font-bold text-slate-900">{formatMoney(p.monto_max, sim)}</span>
                       <span className="text-[10px] text-slate-400 block">Min: {formatMoney(p.monto_min, sim)}</span>
+                      <span className="text-[10px] text-purple-700 font-sans block mt-0.5" title="Monto máximo para aprobación directa antes de derivación a comité">
+                        Dir: {Number(p.monto_aprobacion_directa ?? 0) > 0 ? formatMoney(p.monto_aprobacion_directa, sim) : 'Comité (0)'}
+                      </span>
                     </td>
 
                     {/* Plazo */}

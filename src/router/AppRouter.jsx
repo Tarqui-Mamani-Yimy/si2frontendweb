@@ -53,6 +53,7 @@ import OficialSociosPage from '../modules/oficial/pages/SociosPage'
 import OficialSolicitudesPage from '../modules/oficial/pages/SolicitudesPage'
 import CarteraPage from '../modules/oficial/pages/CarteraPage'
 import RecreditosPage from '../modules/oficial/pages/RecreditosPage'
+import ComitePage from '../modules/oficial/pages/ComitePage'
 
 // ── Contador ──────────────────────────────────────────────────
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
@@ -105,6 +106,7 @@ export default function AppRouter() {
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="recreditos" element={<RecreditosPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
@@ -132,6 +134,7 @@ export default function AppRouter() {
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="recreditos" element={<RecreditosPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />
@@ -143,6 +146,7 @@ export default function AppRouter() {
           <Route element={<ContadorLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ContadorDashboardPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
             <Route path="cumplimiento" element={<ContadorCumplimientoPage />} />
           </Route>

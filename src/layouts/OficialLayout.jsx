@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { label: 'Solicitudes', path: '/oficial/solicitudes' },
   { label: 'Cartera', path: '/oficial/cartera' },
   { label: 'Re-créditos', path: '/oficial/recreditos' },
+  { label: 'Comité', path: '/oficial/comite' },
   { label: 'Plazo Fijo', path: '/oficial/plazo-fijo' },
   { label: 'Créditos', path: '/oficial/creditos' },
   { label: 'Socios', path: '/oficial/socios' },

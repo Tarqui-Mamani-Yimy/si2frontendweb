@@ -7,9 +7,11 @@ import ResolverDictamenModal from '../scoring/ResolverDictamenModal'
 import PlanPagosModal from '../creditos/PlanPagosModal'
 import DesembolsoModal from '../creditos/DesembolsoModal'
 import ComprobanteDesembolsoModal from '../creditos/ComprobanteDesembolsoModal'
+import ActaComiteModal from '../comite/ActaComiteModal'
 import {
   evaluarSolicitud,
   listarEvaluaciones,
+  getSolicitudCredito,
 } from '../../../../core/api/creditosApi'
 import { useAuthStore, selectUser } from '../../../../core/store/authStore'
 import { normalizeRole } from '../../../../core/utils/roles'
@@ -40,6 +42,8 @@ function getEstadoBadgeVariant(estado) {
       return 'amber'
     case 'EN_EVALUACION':
       return 'indigo'
+    case 'EN_COMITE':
+      return 'purple'
     case 'APROBADO':
       return 'green'
     case 'RECHAZADO':
@@ -48,6 +52,21 @@ function getEstadoBadgeVariant(estado) {
       return 'teal'
     case 'ANULADA':
       return 'slate'
+    default:
+      return 'slate'
+  }
+}
+
+function getResultadoBadgeVariant(resultado) {
+  switch (resultado) {
+    case 'APROBADO':
+      return 'green'
+    case 'RECHAZADO':
+      return 'red'
+    case 'OBSERVADA':
+      return 'amber'
+    case 'EN_COMITE':
+      return 'purple'
     default:
       return 'slate'
   }
@@ -110,6 +129,7 @@ export default function DetalleSolicitudModal({
   const [planPagosModalOpen, setPlanPagosModalOpen] = useState(false)
   const [desembolsoModalOpen, setDesembolsoModalOpen] = useState(false)
   const [comprobanteModalOpen, setComprobanteModalOpen] = useState(false)
+  const [actaModalOpen, setActaModalOpen] = useState(false)
   const [creditoDesembolsado, setCreditoDesembolsado] = useState(null)
 
   // Cargar historial de evaluaciones al abrir o cambiar de solicitud
@@ -192,17 +212,23 @@ export default function DetalleSolicitudModal({
       setEvaluaciones((prev) => [nuevaEval, ...prev.filter((e) => e.id !== nuevaEval.id)])
       setSelectedEvalId(nuevaEval.id)
 
-      const nuevoEstado = nuevaEval.dictamen === 'REVISION_MANUAL' ? 'EN_EVALUACION' : nuevaEval.dictamen
-      const updatedSol = {
-        ...currentSolicitud,
-        estado: nuevoEstado,
-        ultima_evaluacion: {
-          id: nuevaEval.id,
-          score: nuevaEval.score,
-          dictamen: nuevaEval.dictamen,
-          fecha: nuevaEval.fecha,
-        },
+      let updatedSol
+      try {
+        updatedSol = await getSolicitudCredito(currentSolicitud.id)
+      } catch {
+        const nuevoEstado = nuevaEval.dictamen === 'RECHAZADO' ? 'RECHAZADO' : 'EN_COMITE'
+        updatedSol = {
+          ...currentSolicitud,
+          estado: nuevoEstado,
+          ultima_evaluacion: {
+            id: nuevaEval.id,
+            score: nuevaEval.score,
+            dictamen: nuevaEval.dictamen,
+            fecha: nuevaEval.fecha,
+          },
+        }
       }
+
       setSolicitudOverride(updatedSol)
       onUpdated?.(updatedSol)
       setActiveTab('scoring')
@@ -292,6 +318,21 @@ export default function DetalleSolicitudModal({
                 >
                   <span className="material-symbols-outlined text-[16px]">calendar_month</span>
                   <span>Plan de Pagos</span>
+                </Button>
+              )}
+
+              {/* Botón Acta de Comité (CU-W25) */}
+              {(currentSolicitud.ronda_comite > 0 || currentSolicitud.resultado_comite || currentSolicitud.estado === 'EN_COMITE') && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setActaModalOpen(true)}
+                  type="button"
+                  className="gap-1.5 text-purple-800 border-purple-300 hover:bg-purple-50"
+                  title="Ver e imprimir acta oficial de deliberación en comité de crédito"
+                >
+                  <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                  <span>Acta de Comité</span>
                 </Button>
               )}
 
@@ -525,6 +566,67 @@ export default function DetalleSolicitudModal({
                 >
                   <span className="material-symbols-outlined text-[15px]">calendar_month</span>
                   <span>Ver Plan</span>
+                </Button>
+              </div>
+            )}
+
+            {/* Banner de Solicitud en Comité de Crédito (CU-W25) */}
+            {currentSolicitud.estado === 'EN_COMITE' && (
+              <div className="rounded-xl border border-purple-300 bg-purple-50/80 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-purple-100 p-2 text-purple-700 shrink-0">
+                    <span className="material-symbols-outlined text-xl">how_to_vote</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-purple-950">
+                        Solicitud Derivada a Comité de Crédito
+                      </h4>
+                      <Badge variant="purple" className="!text-[9px]">
+                        Ronda #{currentSolicitud.ronda_comite || 1}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-purple-800">
+                      Esta solicitud requiere deliberación y votación colegiada estatutaria de los vocales del comité.
+                    </p>
+                  </div>
+                </div>
+                {(currentSolicitud.ronda_comite > 0 || currentSolicitud.resultado_comite) && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setActaModalOpen(true)}
+                    type="button"
+                    className="gap-1.5 bg-white text-purple-900 border-purple-300 hover:bg-purple-100 shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">receipt_long</span>
+                    <span>Acta de Comité</span>
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Resolución de Comité si ya fue resuelta en rondas previas */}
+            {currentSolicitud.resultado_comite && currentSolicitud.estado !== 'EN_COMITE' && (
+              <div className="rounded-lg border border-purple-200 bg-purple-50/60 p-2.5 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-purple-700">gavel</span>
+                  <span className="text-slate-700 font-medium">
+                    Resolución de Comité (Ronda #{currentSolicitud.ronda_comite || 1}):
+                  </span>
+                  <Badge variant={getResultadoBadgeVariant(currentSolicitud.resultado_comite)}>
+                    {currentSolicitud.resultado_comite}
+                  </Badge>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setActaModalOpen(true)}
+                  type="button"
+                  className="!py-0.5 !px-2 !text-[11px] gap-1 text-purple-800 border-purple-300 hover:bg-purple-50"
+                >
+                  <span className="material-symbols-outlined text-[13px]">receipt_long</span>
+                  <span>Ver Acta</span>
                 </Button>
               </div>
             )}
@@ -941,6 +1043,15 @@ export default function DetalleSolicitudModal({
           open={comprobanteModalOpen}
           onClose={() => setComprobanteModalOpen(false)}
           credito={creditoDesembolsado}
+        />
+      )}
+
+      {/* Modal de Acta Oficial de Comité (CU-W25) */}
+      {actaModalOpen && (
+        <ActaComiteModal
+          open={actaModalOpen}
+          onClose={() => setActaModalOpen(false)}
+          solicitudId={currentSolicitud.id}
         />
       )}
     </>

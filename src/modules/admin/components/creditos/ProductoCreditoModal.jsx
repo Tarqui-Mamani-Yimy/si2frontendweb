@@ -32,6 +32,7 @@ export default function ProductoCreditoModal({
     moneda_id: producto?.moneda?.id ?? (monedas[0]?.id ?? 1),
     monto_min: producto?.monto_min != null ? String(producto.monto_min) : '',
     monto_max: producto?.monto_max != null ? String(producto.monto_max) : '',
+    monto_aprobacion_directa: producto?.monto_aprobacion_directa != null ? String(producto.monto_aprobacion_directa) : '0.00',
     plazo_min_meses: producto?.plazo_min_meses != null ? String(producto.plazo_min_meses) : '',
     plazo_max_meses: producto?.plazo_max_meses != null ? String(producto.plazo_max_meses) : '',
     tasa_interes_anual: producto?.tasa_interes_anual != null ? String(producto.tasa_interes_anual) : '',
@@ -88,6 +89,11 @@ export default function ProductoCreditoModal({
       errs.monto_max = 'Debe ser mayor a cero.'
     } else if (!isNaN(minMonto) && maxMonto < minMonto) {
       errs.monto_max = 'No puede ser menor al monto mínimo.'
+    }
+
+    const montoDirecto = parseFloat(form.monto_aprobacion_directa)
+    if (isNaN(montoDirecto) || montoDirecto < 0) {
+      errs.monto_aprobacion_directa = 'Debe ser 0 o un valor positivo.'
     }
 
     const minPlazo = parseInt(form.plazo_min_meses, 10)
@@ -147,6 +153,7 @@ export default function ProductoCreditoModal({
         moneda_id: Number(form.moneda_id),
         monto_min: parseFloat(form.monto_min).toFixed(2),
         monto_max: parseFloat(form.monto_max).toFixed(2),
+        monto_aprobacion_directa: parseFloat(form.monto_aprobacion_directa || '0').toFixed(2),
         plazo_min_meses: parseInt(form.plazo_min_meses, 10),
         plazo_max_meses: parseInt(form.plazo_max_meses, 10),
         tasa_interes_anual: parseFloat(form.tasa_interes_anual).toFixed(2),
@@ -325,6 +332,27 @@ export default function ProductoCreditoModal({
               />
             </FormField>
           </div>
+
+          <FormField
+            id="monto_aprobacion_directa"
+            label={`Monto Máx. Aprobación Directa (${monedaSimbolo})`}
+            error={errors.monto_aprobacion_directa}
+          >
+            <Input
+              id="monto_aprobacion_directa"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.monto_aprobacion_directa}
+              onChange={(e) => handleChange('monto_aprobacion_directa', e.target.value)}
+              placeholder="0.00"
+              hasError={Boolean(errors.monto_aprobacion_directa)}
+              className="tabular-nums"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Montos aprobados por encima de este valor pasan obligatoriamente a Comité de Crédito (0 = todas las solicitudes aprobadas van a comité).
+            </p>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-3">
             <FormField

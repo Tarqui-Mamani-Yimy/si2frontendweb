@@ -419,6 +419,35 @@ export async function getExplicacionDictamen(id) {
   return data
 }
 
+/**
+ * Listar solicitudes actualmente derivadas a comité de crédito (CU-W25).
+ * GET /api/v1/creditos/comite
+ * @returns {Promise<Array<object>>} List[ComiteItemOut]
+ */
+export async function listarComite() {
+  const { data } = await client.get('/creditos/comite')
+  return data
+}
 
+/**
+ * Emitir un voto en el comité de crédito para una solicitud (CU-W25).
+ * POST /api/v1/creditos/comite/{solicitud_id}/votos
+ * @param {number|string} solicitudId
+ * @param {{ voto: 'APROBAR' | 'RECHAZAR' | 'OBSERVAR', comentario: string }} payload
+ * @returns {Promise<object>} ComiteItemOut
+ */
+export async function votarComite(solicitudId, payload) {
+  const { data } = await client.post(`/creditos/comite/${solicitudId}/votos`, payload)
+  return data
+}
 
-
+/**
+ * Obtener el acta oficial de resolución en comité de una solicitud (CU-W25).
+ * GET /api/v1/creditos/solicitudes/{id}/acta-comite
+ * @param {number|string} solicitudId
+ * @returns {Promise<object>} ActaOut
+ */
+export async function getActaComite(solicitudId) {
+  const { data } = await client.get(`/creditos/solicitudes/${solicitudId}/acta-comite`)
+  return data
+}
