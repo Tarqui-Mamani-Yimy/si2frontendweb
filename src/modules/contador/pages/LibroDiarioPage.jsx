@@ -27,6 +27,7 @@ export default function LibroDiarioPage() {
   const [monedaId, setMonedaId] = useState(1)
   const [limit] = useState(50)
   const [offset, setOffset] = useState(0)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const [data, setData] = useState({ total: 0, items: [], totales_periodo: { debe: '0.00', haber: '0.00' } })
   const [loading, setLoading] = useState(true)
@@ -80,12 +81,13 @@ export default function LibroDiarioPage() {
     return () => {
       isMounted = false
     }
-  }, [desde, hasta, monedaId, limit, offset])
+  }, [desde, hasta, monedaId, limit, offset, refreshTrigger])
 
   function handleFilterSubmit(e) {
     e?.preventDefault()
     setOffset(0)
     setLoading(true)
+    setRefreshTrigger((n) => n + 1)
   }
 
   function handleResetFilters() {
@@ -94,6 +96,7 @@ export default function LibroDiarioPage() {
     setMonedaId(1)
     setOffset(0)
     setLoading(true)
+    setRefreshTrigger((n) => n + 1)
   }
 
   async function handleExportCsv() {
