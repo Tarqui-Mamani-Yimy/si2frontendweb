@@ -199,7 +199,7 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
               onChange={(e) => {
                 const next = e.target.value
                 setQuery(next)
-                fetchCuentas(next)
+                handleSearch(next)
               }}
               autoFocus
               className="w-full h-8 pl-8 pr-2 text-xs rounded border-0 bg-transparent text-[#0b1c30] placeholder:text-slate-400 outline-none"
