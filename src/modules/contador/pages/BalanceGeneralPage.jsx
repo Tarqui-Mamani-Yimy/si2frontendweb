@@ -137,9 +137,9 @@ export default function BalanceGeneralPage() {
   const diferenciaCuadre = fromCents(Math.abs(toCents(totalActivo) - toCents(totalPasivoPatrimonio)))
 
   // Secciones son objetos con claves "ACTIVO", "PASIVO", "PATRIMONIO", cada una con grupos indexados por código
-  const gruposActivo = Object.values(data?.secciones?.ACTIVO || {}).sort((a, b) => a.codigo.localeCompare(b.codigo))
-  const gruposPasivo = Object.values(data?.secciones?.PASIVO || {}).sort((a, b) => a.codigo.localeCompare(b.codigo))
-  const gruposPatrimonio = Object.values(data?.secciones?.PATRIMONIO || {}).sort((a, b) => a.codigo.localeCompare(b.codigo))
+  const gruposActivo = Object.values(data?.secciones?.ACTIVO || {}).filter((g) => g && typeof g.codigo === 'string').sort((a, b) => a.codigo.localeCompare(b.codigo))
+  const gruposPasivo = Object.values(data?.secciones?.PASIVO || {}).filter((g) => g && typeof g.codigo === 'string').sort((a, b) => a.codigo.localeCompare(b.codigo))
+  const gruposPatrimonio = Object.values(data?.secciones?.PATRIMONIO || {}).filter((g) => g && typeof g.codigo === 'string').sort((a, b) => a.codigo.localeCompare(b.codigo))
 
   return (
     <div className="space-y-6 animate-fade-in">
