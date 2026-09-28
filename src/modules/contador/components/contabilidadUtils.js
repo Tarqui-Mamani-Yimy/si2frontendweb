@@ -153,3 +153,28 @@ export function triggerCsvDownload(data, defaultFilename, contentDisposition) {
   document.body.removeChild(link)
   window.URL.revokeObjectURL(url)
 }
+
+export function getFirstDayOfYearIso() {
+  const d = new Date()
+  return `${d.getFullYear()}-01-01`
+}
+
+/**
+ * Format exchange rate with 5 decimal places.
+ * e.g. 6.86 -> "6.86000"
+ * @param {string|number|null|undefined} val
+ * @returns {string}
+ */
+export function formatExchangeRate(val) {
+  if (val == null || val === '') return '—'
+  const num = parseFloat(String(val).replace(',', '.'))
+  if (isNaN(num)) return String(val)
+  return num.toFixed(5)
+}
+
+export const MODOS_MONEDA = [
+  { id: 'CONSOLIDADO', label: 'Consolidado en Bs. (USD valuado a TC oficial)' },
+  { id: 'BOB', label: 'Solo Bolivianos (BOB)' },
+  { id: 'USD', label: 'Solo Dólares (USD)' },
+]
+

@@ -66,6 +66,9 @@ import ParametrosContablesPage from '../modules/contador/pages/ParametrosContabl
 import LibroDiarioPage from '../modules/contador/pages/LibroDiarioPage'
 import LibroMayorPage from '../modules/contador/pages/LibroMayorPage'
 import BalanceComprobacionPage from '../modules/contador/pages/BalanceComprobacionPage'
+import TiposCambioPage from '../modules/contador/pages/TiposCambioPage'
+import BalanceGeneralPage from '../modules/contador/pages/BalanceGeneralPage'
+import EstadoResultadosPage from '../modules/contador/pages/EstadoResultadosPage'
 
 // ── Socio ─────────────────────────────────────────────────────
 import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
@@ -122,6 +125,9 @@ export default function AppRouter() {
             <Route path="libro-diario" element={<LibroDiarioPage />} />
             <Route path="libro-mayor" element={<LibroMayorPage />} />
             <Route path="balance-comprobacion" element={<BalanceComprobacionPage />} />
+            <Route path="balance-general" element={<BalanceGeneralPage />} />
+            <Route path="estado-resultados" element={<EstadoResultadosPage />} />
+            <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
             <Route path="configuracion" element={<AdminConfiguracionPage />} />
@@ -166,6 +172,9 @@ export default function AppRouter() {
             <Route path="libro-diario" element={<LibroDiarioPage />} />
             <Route path="libro-mayor" element={<LibroMayorPage />} />
             <Route path="balance-comprobacion" element={<BalanceComprobacionPage />} />
+            <Route path="balance-general" element={<BalanceGeneralPage />} />
+            <Route path="estado-resultados" element={<EstadoResultadosPage />} />
+            <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />

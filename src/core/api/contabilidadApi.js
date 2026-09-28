@@ -355,3 +355,115 @@ export async function exportBalanceComprobacion(params = {}) {
   })
   return response
 }
+
+/**
+ * List official exchange rates by currency and date range (CU-W32).
+ * GET /api/v1/contabilidad/tipos-cambio?moneda_id=&desde=&hasta=
+ * @param {{
+ *   moneda_id?: number,
+ *   desde?: string,
+ *   hasta?: string
+ * }} [params]
+ * @returns {Promise<Array<object>>}
+ */
+export async function getTiposCambio(params = {}) {
+  const { data } = await client.get('/contabilidad/tipos-cambio', { params })
+  return data
+}
+
+/**
+ * Register a new daily official exchange rate (CU-W32).
+ * POST /api/v1/contabilidad/tipos-cambio
+ * @param {{
+ *   moneda_id: number,
+ *   fecha: string,
+ *   valor: number|string,
+ *   fuente?: string
+ * }} payload
+ * @returns {Promise<object>}
+ */
+export async function createTipoCambio(payload) {
+  const { data } = await client.post('/contabilidad/tipos-cambio', payload)
+  return data
+}
+
+/**
+ * Update/correct an existing official exchange rate (CU-W32).
+ * PUT /api/v1/contabilidad/tipos-cambio/{id}
+ * @param {number|string} id
+ * @param {{
+ *   valor: number|string,
+ *   fuente?: string
+ * }} payload
+ * @returns {Promise<object>}
+ */
+export async function updateTipoCambio(id, payload) {
+  const { data } = await client.put(`/contabilidad/tipos-cambio/${id}`, payload)
+  return data
+}
+
+/**
+ * Get Balance General (Estado de Situación Patrimonial) at cut-off date (CU-W32).
+ * GET /api/v1/contabilidad/balance-general?fecha_corte=&nivel=&moneda=
+ * @param {{
+ *   fecha_corte?: string,
+ *   nivel?: number,
+ *   moneda?: 'CONSOLIDADO'|'BOB'|'USD'
+ * }} [params]
+ * @returns {Promise<object>}
+ */
+export async function getBalanceGeneral(params = {}) {
+  const { data } = await client.get('/contabilidad/balance-general', { params })
+  return data
+}
+
+/**
+ * Export Balance General to CSV with UTF-8 BOM (CU-W32).
+ * GET /api/v1/contabilidad/balance-general/export?fecha_corte=&nivel=&moneda=
+ * @param {{
+ *   fecha_corte?: string,
+ *   nivel?: number,
+ *   moneda?: 'CONSOLIDADO'|'BOB'|'USD'
+ * }} [params]
+ * @returns {Promise<any>}
+ */
+export async function exportBalanceGeneral(params = {}) {
+  const response = await client.get('/contabilidad/balance-general/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}
+
+/**
+ * Get Estado de Resultados (Estado de Rendimiento Económico) for a period (CU-W32).
+ * GET /api/v1/contabilidad/estado-resultados?desde=&hasta=&moneda=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda?: 'CONSOLIDADO'|'BOB'|'USD'
+ * }} [params]
+ * @returns {Promise<object>}
+ */
+export async function getEstadoResultados(params = {}) {
+  const { data } = await client.get('/contabilidad/estado-resultados', { params })
+  return data
+}
+
+/**
+ * Export Estado de Resultados to CSV with UTF-8 BOM (CU-W32).
+ * GET /api/v1/contabilidad/estado-resultados/export?desde=&hasta=&moneda=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda?: 'CONSOLIDADO'|'BOB'|'USD'
+ * }} [params]
+ * @returns {Promise<any>}
+ */
+export async function exportEstadoResultados(params = {}) {
+  const response = await client.get('/contabilidad/estado-resultados/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}
