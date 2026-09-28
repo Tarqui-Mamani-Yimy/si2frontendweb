@@ -14,6 +14,8 @@ const NAV_ITEMS = [
   { label: 'Créditos', path: '/admin/creditos' },
   { label: 'Caja', path: '/admin/caja' },
   { label: 'Plan de Cuentas', path: '/admin/plan-cuentas' },
+  { label: 'Comprobantes', path: '/admin/comprobantes' },
+  { label: 'Parámetros Contables', path: '/admin/parametros-contables' },
   { label: 'Reportes', path: '/admin/reportes' },
   { label: 'Bitácora', path: '/admin/bitacora' },
   { label: 'Configuración', path: '/admin/configuracion' },

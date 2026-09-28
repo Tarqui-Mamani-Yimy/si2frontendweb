@@ -111,3 +111,106 @@ export async function deleteCuentaAnalitica(id) {
   const { data } = await client.delete(`/contabilidad/plan-cuentas/${id}`)
   return data
 }
+
+/**
+ * List accounting vouchers with pagination and filters (CU-W30).
+ * GET /api/v1/contabilidad/comprobantes?desde=&hasta=&tipo=&origen=&estado=&q=&limit=&offset=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   tipo?: 'INGRESO'|'EGRESO'|'TRASPASO',
+ *   origen?: 'MANUAL'|'AUTOMATICO',
+ *   estado?: 'REGISTRADO'|'ANULADO',
+ *   q?: string,
+ *   limit?: number,
+ *   offset?: number
+ * }} [params]
+ * @returns {Promise<{ total: number, items: Array<object> } | Array<object>>}
+ */
+export async function listComprobantes(params = {}) {
+  const { data } = await client.get('/contabilidad/comprobantes', { params })
+  return data
+}
+
+/**
+ * Get detailed voucher information including lines, totals, and reversal links (CU-W30).
+ * GET /api/v1/contabilidad/comprobantes/{id}
+ * @param {number|string} id
+ * @returns {Promise<object>}
+ */
+export async function getComprobante(id) {
+  const { data } = await client.get(`/contabilidad/comprobantes/${id}`)
+  return data
+}
+
+/**
+ * Create a new manual double-entry voucher (CU-W30).
+ * POST /api/v1/contabilidad/comprobantes
+ * @param {{
+ *   tipo: 'INGRESO'|'EGRESO'|'TRASPASO',
+ *   fecha_contable: string,
+ *   glosa: string,
+ *   moneda_id: number,
+ *   lineas: Array<{
+ *     plan_cuenta_id: number,
+ *     debe: string|number,
+ *     haber: string|number,
+ *     glosa?: string
+ *   }>
+ * }} payload
+ * @returns {Promise<object>}
+ */
+export async function createComprobanteManual(payload) {
+  const { data } = await client.post('/contabilidad/comprobantes', payload)
+  return data
+}
+
+/**
+ * Void a registered manual voucher with mandatory reason (CU-W30).
+ * POST /api/v1/contabilidad/comprobantes/{id}/anular
+ * @param {number|string} id
+ * @param {{ motivo: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function anularComprobante(id, payload) {
+  const { data } = await client.post(`/contabilidad/comprobantes/${id}/anular`, payload)
+  return data
+}
+
+/**
+ * Trigger automatic voucher generation from unmapped operational transactions (CU-W30).
+ * POST /api/v1/contabilidad/comprobantes/generar-automaticos
+ * @param {{ desde?: string, hasta?: string }} [payload]
+ * @returns {Promise<{
+ *   procesadas: number,
+ *   generados: number,
+ *   omitidas: Array<{ transaccion_id: number, tipo: string, motivo: string }>,
+ *   por_tipo: object
+ * }>}
+ */
+export async function generarComprobantesAutomaticos(payload = {}) {
+  const { data } = await client.post('/contabilidad/comprobantes/generar-automaticos', payload)
+  return data
+}
+
+/**
+ * List accounting parameter mappings for the cooperative (CU-W30).
+ * GET /api/v1/contabilidad/parametros-contables
+ * @returns {Promise<Array<object>>}
+ */
+export async function getParametrosContables() {
+  const { data } = await client.get('/contabilidad/parametros-contables')
+  return data
+}
+
+/**
+ * Update the account mapping for a specific accounting parameter key (CU-W30).
+ * PUT /api/v1/contabilidad/parametros-contables/{clave}
+ * @param {string} clave
+ * @param {{ plan_cuenta_id: number }} payload
+ * @returns {Promise<object>}
+ */
+export async function updateParametroContable(clave, payload) {
+  const { data } = await client.put(`/contabilidad/parametros-contables/${clave}`, payload)
+  return data
+}
