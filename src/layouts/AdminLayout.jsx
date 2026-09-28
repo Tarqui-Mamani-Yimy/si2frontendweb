@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Comité', path: '/admin/comite' },
   { label: 'Créditos', path: '/admin/creditos' },
   { label: 'Caja', path: '/admin/caja' },
+  { label: 'Plan de Cuentas', path: '/admin/plan-cuentas' },
   { label: 'Reportes', path: '/admin/reportes' },
   { label: 'Bitácora', path: '/admin/bitacora' },
   { label: 'Configuración', path: '/admin/configuracion' },

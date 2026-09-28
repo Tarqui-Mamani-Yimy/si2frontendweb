@@ -60,6 +60,7 @@ import AlertasPage from '../modules/oficial/pages/AlertasPage'
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
 import ContadorDashboardPage from '../modules/contador/pages/DashboardPage'
 import ContadorReportesPage from '../modules/contador/pages/ReportesPage'
+import PlanCuentasPage from '../modules/contador/pages/PlanCuentasPage'
 
 // ── Socio ─────────────────────────────────────────────────────
 import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
@@ -111,6 +112,7 @@ export default function AppRouter() {
             <Route path="comite" element={<ComitePage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
+            <Route path="plan-cuentas" element={<PlanCuentasPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
             <Route path="configuracion" element={<AdminConfiguracionPage />} />
           </Route>
@@ -149,6 +151,7 @@ export default function AppRouter() {
           <Route element={<ContadorLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ContadorDashboardPage />} />
+            <Route path="plan-cuentas" element={<PlanCuentasPage />} />
             <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
             <Route path="cumplimiento" element={<ContadorCumplimientoPage />} />

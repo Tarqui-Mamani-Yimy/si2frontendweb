@@ -20,6 +20,7 @@ function getNavIcon(label = '', path = '') {
   if (l.includes('bitácora') || l.includes('bitacora')) return 'receipt_long'
   if (l.includes('configura')) return 'settings'
   if (l.includes('cooperativa') || l.includes('tenant')) return 'domain'
+  if (l.includes('plan-cuentas') || l.includes('plan de cuentas')) return 'account_tree'
   if (l.includes('cuenta')) return 'account_balance'
   if (l.includes('cumplimiento')) return 'verified_user'
   return 'folder_open'
