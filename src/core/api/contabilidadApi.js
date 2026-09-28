@@ -214,3 +214,144 @@ export async function updateParametroContable(clave, payload) {
   const { data } = await client.put(`/contabilidad/parametros-contables/${clave}`, payload)
   return data
 }
+
+/**
+ * Get Libro Diario vouchers ordered by date and number with period totals (CU-W31).
+ * GET /api/v1/contabilidad/libro-diario?desde=&hasta=&moneda_id=&limit=&offset=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number,
+ *   limit?: number,
+ *   offset?: number
+ * }} [params]
+ * @returns {Promise<{
+ *   total: number,
+ *   totales_periodo: { debe: string|number, haber: string|number },
+ *   items: Array<object>
+ * }>}
+ */
+export async function getLibroDiario(params = {}) {
+  const { data } = await client.get('/contabilidad/libro-diario', { params })
+  return data
+}
+
+/**
+ * Export Libro Diario to CSV with UTF-8 BOM (CU-W31).
+ * GET /api/v1/contabilidad/libro-diario/export?desde=&hasta=&moneda_id=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number
+ * }} [params]
+ * @returns {Promise<any>}
+ */
+export async function exportLibroDiario(params = {}) {
+  const response = await client.get('/contabilidad/libro-diario/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}
+
+/**
+ * Get Libro Mayor movements, initial balance, running balance and final balance (CU-W31).
+ * GET /api/v1/contabilidad/libro-mayor?cuenta_id=&desde=&hasta=&moneda_id=&incluir_subcuentas=
+ * @param {{
+ *   cuenta_id: number|string,
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number,
+ *   incluir_subcuentas?: boolean
+ * }} params
+ * @returns {Promise<{
+ *   cuenta: { id: number, codigo: string, nombre: string, nivel: number, naturaleza: string, es_regularizadora: boolean },
+ *   saldo_inicial: string|number,
+ *   movimientos: Array<{
+ *     fecha: string,
+ *     comprobante: { id: number, numero: string, tipo: string, estado: string },
+ *     cuenta_codigo: string,
+ *     glosa: string,
+ *     debe: string|number,
+ *     haber: string|number,
+ *     saldo: string|number
+ *   }>,
+ *   totales: { debe: string|number, haber: string|number },
+ *   saldo_final: string|number
+ * }>}
+ */
+export async function getLibroMayor(params = {}) {
+  const { data } = await client.get('/contabilidad/libro-mayor', { params })
+  return data
+}
+
+/**
+ * Export Libro Mayor to CSV with UTF-8 BOM (CU-W31).
+ * GET /api/v1/contabilidad/libro-mayor/export?cuenta_id=&desde=&hasta=&moneda_id=&incluir_subcuentas=
+ * @param {{
+ *   cuenta_id: number|string,
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number,
+ *   incluir_subcuentas?: boolean
+ * }} params
+ * @returns {Promise<any>}
+ */
+export async function exportLibroMayor(params = {}) {
+  const response = await client.get('/contabilidad/libro-mayor/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}
+
+/**
+ * Get Balance de Comprobación de Sumas y Saldos (CU-W31).
+ * GET /api/v1/contabilidad/balance-comprobacion?desde=&hasta=&moneda_id=&nivel=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number,
+ *   nivel?: number
+ * }} [params]
+ * @returns {Promise<{
+ *   criterio: string,
+ *   items: Array<{
+ *     codigo: string,
+ *     nombre: string,
+ *     naturaleza: 'DEUDORA'|'ACREEDORA',
+ *     sumas: { debe: string|number, haber: string|number },
+ *     saldos: { deudor: string|number, acreedor: string|number }
+ *   }>,
+ *   totales: {
+ *     sumas_debe: string|number,
+ *     sumas_haber: string|number,
+ *     saldo_deudor: string|number,
+ *     saldo_acreedor: string|number
+ *   },
+ *   cuadra: boolean
+ * }>}
+ */
+export async function getBalanceComprobacion(params = {}) {
+  const { data } = await client.get('/contabilidad/balance-comprobacion', { params })
+  return data
+}
+
+/**
+ * Export Balance de Comprobación to CSV with UTF-8 BOM (CU-W31).
+ * GET /api/v1/contabilidad/balance-comprobacion/export?desde=&hasta=&moneda_id=&nivel=
+ * @param {{
+ *   desde?: string,
+ *   hasta?: string,
+ *   moneda_id?: number,
+ *   nivel?: number
+ * }} [params]
+ * @returns {Promise<any>}
+ */
+export async function exportBalanceComprobacion(params = {}) {
+  const response = await client.get('/contabilidad/balance-comprobacion/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}

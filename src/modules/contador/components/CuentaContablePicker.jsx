@@ -12,11 +12,14 @@ import { getApiErrorMessage } from '../../../core/api/errors'
  * Protegido contra condiciones de carrera ignorando respuestas obsoletas.
  *
  * @param {{
+ * @param {{
  *   value: object | number | string | null,
  *   onChange: (account: object) => void,
  *   placeholder?: string,
  *   disabled?: boolean,
  *   hasError?: boolean,
+ *   permitirCuentasTitulo?: boolean,
+ *   permitirTitulo?: boolean,
  * }} props
  */
 export default function CuentaContablePicker({
@@ -25,8 +28,11 @@ export default function CuentaContablePicker({
   placeholder = 'Seleccionar cuenta contable...',
   disabled = false,
   hasError = false,
+  permitirCuentasTitulo = false,
+  permitirTitulo = false,
 }) {
   const [openModal, setOpenModal] = useState(false)
+  const allowTitleAccounts = Boolean(permitirCuentasTitulo || permitirTitulo)
 
   // Current display text
   let displayCode = ''
@@ -82,13 +88,14 @@ export default function CuentaContablePicker({
             setOpenModal(false)
           }}
           selectedId={value?.id || (typeof value === 'number' ? value : null)}
+          allowTitleAccounts={allowTitleAccounts}
         />
       )}
     </div>
   )
 }
 
-function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
+function CuentaSearchModal({ open, onClose, onSelect, selectedId, allowTitleAccounts = false }) {
   const [query, setQuery] = useState('')
   const [accounts, setAccounts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -102,7 +109,12 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
     let isMounted = true
     const reqId = ++requestIdRef.current
 
-    listPlanCuentas({ solo_movimiento: true, estado: 'ACTIVA' })
+    const params = { estado: 'ACTIVA' }
+    if (!allowTitleAccounts) {
+      params.solo_movimiento = true
+    }
+
+    listPlanCuentas(params)
       .then((data) => {
         if (!isMounted || reqId !== requestIdRef.current) return
         const items = Array.isArray(data) ? data : data?.items || []
@@ -113,7 +125,7 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
         setError(
           getApiErrorMessage(
             err,
-            'Error al cargar las cuentas contables que aceptan movimientos.',
+            'Error al cargar las cuentas contables.',
           ),
         )
       })
@@ -126,7 +138,7 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [allowTitleAccounts])
 
   function handleSearch(searchQuery) {
     const reqId = ++requestIdRef.current
@@ -134,8 +146,10 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
     setError(null)
 
     const params = {
-      solo_movimiento: true,
       estado: 'ACTIVA',
+    }
+    if (!allowTitleAccounts) {
+      params.solo_movimiento = true
     }
     if (searchQuery.trim()) {
       params.q = searchQuery.trim()
@@ -152,7 +166,7 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
         setError(
           getApiErrorMessage(
             err,
-            'Error al cargar las cuentas contables que aceptan movimientos.',
+            'Error al cargar las cuentas contables.',
           ),
         )
       })
@@ -173,7 +187,11 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
       open={open}
       onClose={onClose}
       title="Seleccionar Cuenta Contable"
-      subtitle="Únicamente cuentas que aceptan movimientos contables (CU-W29 / CU-W30)"
+      subtitle={
+        allowTitleAccounts
+          ? 'Cuentas imputables o cuentas de título para agregación (CU-W29 / CU-W31)'
+          : 'Únicamente cuentas que aceptan movimientos contables (CU-W29 / CU-W30)'
+      }
       footer={
         <div className="flex justify-end w-full">
           <Button type="button" variant="secondary" size="sm" onClick={onClose}>
@@ -225,16 +243,19 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
               search_off
             </span>
             <p className="text-xs font-semibold text-slate-700">
-              No se encontraron cuentas contables imputables
+              No se encontraron cuentas contables
             </p>
             <p className="text-[11px] text-slate-400">
-              Verifique que la cuenta exista en el Plan de Cuentas y acepte movimientos.
+              Verifique los criterios de búsqueda en el Plan de Cuentas.
             </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100 max-h-[360px] overflow-y-auto rounded-lg border border-slate-200 bg-white">
             {accounts.map((acc) => {
               const isSelected = selectedId === acc.id
+              const isTitleAccount =
+                acc.permite_movimiento === false ||
+                (typeof acc.nivel === 'number' && acc.nivel < 4)
               return (
                 <div
                   key={acc.id}
@@ -260,6 +281,11 @@ function CuentaSearchModal({ open, onClose, onSelect, selectedId }) {
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {isTitleAccount && (
+                      <Badge variant="amber" className="!text-[9px] !py-0 !px-1.5">
+                        Título
+                      </Badge>
+                    )}
                     <Badge
                       variant={acc.naturaleza === 'DEUDORA' ? 'teal' : 'navy'}
                       className="!text-[9px] !py-0 !px-1.5"
