@@ -85,6 +85,7 @@ export default function ResumenTab({ fechaCorte, monedaId, refreshTrigger, sim }
   const roa = data?.roa ?? data?.indicadores?.find?.((i) => i.clave === 'ROA')?.valor
   const roe = data?.roe ?? data?.indicadores?.find?.((i) => i.clave === 'ROE')?.valor
   const cobertura = data?.cobertura_previsiones ?? data?.indicadores?.find?.((i) => i.clave === 'COBERTURA_PREVISIONES')?.valor
+  const advertencias = Array.isArray(data?.advertencias) ? data.advertencias : []
 
   const moraBadgeVariant = getMoraBadgeVariant(indiceMora)
   const carteraSana = Math.max(0, toCents(carteraBruta) - toCents(carteraEnMora))
@@ -101,6 +102,35 @@ export default function ResumenTab({ fechaCorte, monedaId, refreshTrigger, sim }
 
   return (
     <div className="space-y-6">
+      {/* Advertencias */}
+      {advertencias.length > 0 && (
+        <div className="space-y-3">
+          {advertencias.map((adv, idx) => (
+            <AlertBanner
+              key={adv.codigo || idx}
+              variant="warning"
+              title="Advertencia de Cartera"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
+                <span className="font-medium text-amber-900">{adv.mensaje}</span>
+                <div className="flex items-center gap-2 shrink-0 text-xs">
+                  {adv.creditos != null && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 font-semibold border border-amber-300">
+                      {adv.creditos} {adv.creditos === 1 ? 'crédito' : 'créditos'}
+                    </span>
+                  )}
+                  {adv.saldo != null && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-950 font-mono font-bold border border-amber-300">
+                      Saldo: {formatMoney(adv.saldo, sim)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </AlertBanner>
+          ))}
+        </div>
+      )}
+
       {/* KPI Headline Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Cartera Bruta */}
