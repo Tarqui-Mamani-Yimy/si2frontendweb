@@ -6,6 +6,7 @@ import {
   formatPercent,
   calculatePercentage,
   getMoraBadgeVariant,
+  getMoraBadgeLabel,
   DEFAULT_PALETTE,
 } from './reportesChartUtils'
 import MetricCard from '../../../../components/ui/MetricCard'
@@ -202,7 +203,7 @@ export default function CarteraTab({ fechaCorte, monedaId, refreshTrigger, sim }
               {formatPercent(indiceMora)}
             </span>
             <Badge variant={getMoraBadgeVariant(indiceMora)}>
-              {indiceMora <= 3 ? 'Bajo' : indiceMora <= 5 ? 'Atención' : 'Crítico'}
+              {getMoraBadgeLabel(indiceMora)}
             </Badge>
           </div>
           <p className="mt-2.5 text-xs text-slate-400">Cartera mora / Cartera bruta × 100</p>

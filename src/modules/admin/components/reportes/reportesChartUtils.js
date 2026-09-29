@@ -141,3 +141,9 @@ export function getMoraBadgeVariant(indice) {
   if (num <= 5) return 'amber'
   return 'red'
 }
+
+const MORA_LABELS = { green: 'Mora baja', amber: 'Mora moderada', red: 'Mora crítica', slate: 'Sin datos' }
+
+export function getMoraBadgeLabel(indice) {
+  return MORA_LABELS[getMoraBadgeVariant(indice)]
+}

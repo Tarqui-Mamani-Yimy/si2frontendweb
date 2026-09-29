@@ -8,6 +8,7 @@ import {
   computeDonutSegments,
   formatIndicatorValue,
   getMoraBadgeVariant,
+  getMoraBadgeLabel,
 } from '../src/modules/admin/components/reportes/reportesChartUtils.js'
 
 test('calculatePercentage calculates accurate proportion', () => {
@@ -73,4 +74,12 @@ test('getMoraBadgeVariant classifies risk correctly', () => {
   assert.equal(getMoraBadgeVariant(7.2), 'red')
   assert.equal(getMoraBadgeVariant(null), 'slate')
   assert.equal(getMoraBadgeVariant(undefined), 'slate')
+})
+
+test('getMoraBadgeLabel never reports missing data as critical', () => {
+  assert.equal(getMoraBadgeLabel(null), 'Sin datos')
+  assert.equal(getMoraBadgeLabel(undefined), 'Sin datos')
+  assert.equal(getMoraBadgeLabel('2.50'), 'Mora baja')
+  assert.equal(getMoraBadgeLabel('4.00'), 'Mora moderada')
+  assert.equal(getMoraBadgeLabel('7.10'), 'Mora crítica')
 })

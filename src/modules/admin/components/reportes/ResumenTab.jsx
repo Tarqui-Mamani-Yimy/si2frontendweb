@@ -6,6 +6,7 @@ import {
   formatPercent,
   formatIndicatorValue,
   getMoraBadgeVariant,
+  getMoraBadgeLabel,
 } from './reportesChartUtils'
 import MetricCard from '../../../../components/ui/MetricCard'
 import Badge from '../../../../components/ui/Badge'
@@ -150,7 +151,7 @@ export default function ResumenTab({ fechaCorte, monedaId, refreshTrigger, sim }
             <span className="font-label-caps text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Índice de Morosidad
             </span>
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${moraBadgeVariant === 'green' ? 'bg-emerald-50 text-emerald-700' : moraBadgeVariant === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${moraBadgeVariant === 'green' ? 'bg-emerald-50 text-emerald-700' : moraBadgeVariant === 'amber' ? 'bg-amber-50 text-amber-700' : moraBadgeVariant === 'slate' ? 'bg-slate-100 text-slate-500' : 'bg-rose-50 text-rose-700'}`}>
               <span className="material-symbols-outlined text-[20px]">warning</span>
             </div>
           </div>
@@ -160,7 +161,7 @@ export default function ResumenTab({ fechaCorte, monedaId, refreshTrigger, sim }
               {formatPercent(indiceMora)}
             </span>
             <Badge variant={moraBadgeVariant} className="text-xs py-0.5">
-              {moraBadgeVariant === 'green' ? 'Mora Baja' : moraBadgeVariant === 'amber' ? 'Mora Moderada' : 'Mora Crítica'}
+              {getMoraBadgeLabel(indiceMora)}
             </Badge>
           </div>
 
