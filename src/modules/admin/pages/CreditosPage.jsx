@@ -336,6 +336,18 @@ export default function AdminCreditosPage() {
                       ) : (
                         <span className="text-[11px] text-slate-400 italic block mt-0.5">Sin descripción</span>
                       )}
+                      {p.tipo_credito_asfi && (
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <Badge variant="navy" className="text-[10px] py-0 px-1.5">
+                            {p.tipo_credito_asfi.replace(/_/g, ' ')}
+                          </Badge>
+                          {p.sector_productivo && (
+                            <Badge variant="green" className="text-[10px] py-0 px-1.5">
+                              Productivo
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* Moneda */}

@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Parámetros Contables', path: '/contador/parametros-contables' },
   { label: 'Comité', path: '/contador/comite' },
   { label: 'Reportes', path: '/contador/reportes' },
+  { label: 'Informes ASFI', path: '/contador/informes-asfi' },
   { label: 'Cumplimiento', path: '/contador/cumplimiento' },
 ]
 

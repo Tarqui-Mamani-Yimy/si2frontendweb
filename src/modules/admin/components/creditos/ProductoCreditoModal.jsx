@@ -37,6 +37,8 @@ export default function ProductoCreditoModal({
     plazo_max_meses: producto?.plazo_max_meses != null ? String(producto.plazo_max_meses) : '',
     tasa_interes_anual: producto?.tasa_interes_anual != null ? String(producto.tasa_interes_anual) : '',
     tipo_amortizacion: producto?.tipo_amortizacion ?? 'FRANCES',
+    tipo_credito_asfi: producto?.tipo_credito_asfi ?? '',
+    sector_productivo: Boolean(producto?.sector_productivo ?? false),
     dias_gracia_mora: producto?.dias_gracia_mora != null ? String(producto.dias_gracia_mora) : '0',
     tasa_mora_anual: producto?.tasa_mora_anual != null ? String(producto.tasa_mora_anual) : '0.00',
     relacion_cuota_ingreso_max: producto?.relacion_cuota_ingreso_max != null ? String(producto.relacion_cuota_ingreso_max) : '40.00',
@@ -139,6 +141,17 @@ export default function ProductoCreditoModal({
       }
     }
 
+    const ASFI_TIPOS = [
+      'MICROCREDITO',
+      'MICROCREDITO_AGROPECUARIO',
+      'CONSUMO',
+      'VIVIENDA_HIPOTECARIA',
+      'VIVIENDA_SIN_GARANTIA',
+    ]
+    if (form.tipo_credito_asfi && !ASFI_TIPOS.includes(form.tipo_credito_asfi)) {
+      errs.tipo_credito_asfi = 'Seleccione una clasificación regulatoria ASFI válida.'
+    }
+
     return errs
   }
 
@@ -159,6 +172,8 @@ export default function ProductoCreditoModal({
         nombre: form.nombre.trim(),
         descripcion: form.descripcion.trim() || null,
         moneda_id: Number(form.moneda_id),
+        tipo_credito_asfi: form.tipo_credito_asfi || null,
+        sector_productivo: Boolean(form.sector_productivo),
         monto_min: parseFloat(form.monto_min).toFixed(2),
         monto_max: parseFloat(form.monto_max).toFixed(2),
         monto_aprobacion_directa: parseFloat(form.monto_aprobacion_directa || '0').toFixed(2),
@@ -289,6 +304,63 @@ export default function ProductoCreditoModal({
                   className="min-h-[70px]"
                 />
               </FormField>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sección: Clasificación Regulatoria ASFI (CU-W34) ── */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+            <span className="material-symbols-outlined text-[18px] text-[#064e3b]">gavel</span>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              Clasificación Regulatoria ASFI (CU-W34)
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+            <div className="sm:col-span-2">
+              <FormField
+                id="tipo_credito_asfi"
+                label="Tipo de Crédito ASFI"
+                error={errors.tipo_credito_asfi}
+              >
+                <select
+                  id="tipo_credito_asfi"
+                  value={form.tipo_credito_asfi}
+                  onChange={(e) => handleChange('tipo_credito_asfi', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-sm text-[#0b1c30] outline-none transition focus:border-[#006c49] focus:bg-white focus:ring-2 focus:ring-[#006c49]/20"
+                >
+                  <option value="">— Sin clasificar —</option>
+                  <option value="MICROCREDITO">Microcrédito (Art. 8.1)</option>
+                  <option value="MICROCREDITO_AGROPECUARIO">Microcrédito Agropecuario (Art. 8.2)</option>
+                  <option value="CONSUMO">Consumo (Art. 8)</option>
+                  <option value="VIVIENDA_HIPOTECARIA">Vivienda con Garantía Hipotecaria (Art. 7)</option>
+                  <option value="VIVIENDA_SIN_GARANTIA">Vivienda sin Garantía Hipotecaria (Art. 7)</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Define los tramos normativos de mora y la alícuota porcentual de previsión regulatoria.
+                </p>
+              </FormField>
+            </div>
+
+            <div className="pt-6 sm:pt-7">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="sector_productivo"
+                  checked={form.sector_productivo}
+                  onChange={(e) => handleChange('sector_productivo', e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#064e3b] focus:ring-[#064e3b]"
+                />
+                <div className="text-xs">
+                  <span className="font-semibold text-slate-800 block">
+                    Sector Productivo
+                  </span>
+                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                    Aplica tasa preferencial de previsión para microcrédito/PYME productivo.
+                  </span>
+                </div>
+              </label>
             </div>
           </div>
         </div>
