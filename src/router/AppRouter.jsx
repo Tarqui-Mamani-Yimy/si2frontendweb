@@ -29,6 +29,7 @@ import AdminConfiguracionPage from '../modules/admin/pages/ConfiguracionPage'
 import AdminCreditosPage from '../modules/admin/pages/CreditosPage'
 import AdminDashboardPage from '../modules/admin/pages/DashboardPage'
 import AdminReportesPage from '../modules/admin/pages/ReportesPage'
+import AdminInformesAsfiPage from '../modules/admin/pages/InformesAsfiPage'
 import AdminSociosPage from '../modules/admin/pages/SociosPage'
 import RegistrarSocioPage from '../modules/admin/pages/RegistrarSocio'
 import RegistrarUsuarioPage from '../modules/admin/pages/RegistrarUsuarioPage'
@@ -53,11 +54,23 @@ import OficialSociosPage from '../modules/oficial/pages/SociosPage'
 import OficialSolicitudesPage from '../modules/oficial/pages/SolicitudesPage'
 import CarteraPage from '../modules/oficial/pages/CarteraPage'
 import RecreditosPage from '../modules/oficial/pages/RecreditosPage'
+import ComitePage from '../modules/oficial/pages/ComitePage'
+import AlertasPage from '../modules/oficial/pages/AlertasPage'
 
 // ── Contador ──────────────────────────────────────────────────
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
 import ContadorDashboardPage from '../modules/contador/pages/DashboardPage'
 import ContadorReportesPage from '../modules/contador/pages/ReportesPage'
+import ContadorInformesAsfiPage from '../modules/contador/pages/InformesAsfiPage'
+import PlanCuentasPage from '../modules/contador/pages/PlanCuentasPage'
+import ComprobantesPage from '../modules/contador/pages/ComprobantesPage'
+import ParametrosContablesPage from '../modules/contador/pages/ParametrosContablesPage'
+import LibroDiarioPage from '../modules/contador/pages/LibroDiarioPage'
+import LibroMayorPage from '../modules/contador/pages/LibroMayorPage'
+import BalanceComprobacionPage from '../modules/contador/pages/BalanceComprobacionPage'
+import TiposCambioPage from '../modules/contador/pages/TiposCambioPage'
+import BalanceGeneralPage from '../modules/contador/pages/BalanceGeneralPage'
+import EstadoResultadosPage from '../modules/contador/pages/EstadoResultadosPage'
 
 // ── Socio ─────────────────────────────────────────────────────
 import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
@@ -104,10 +117,22 @@ export default function AppRouter() {
             <Route path="socios/nuevo" element={<RegistrarSocioPage />} />
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
+            <Route path="alertas" element={<AlertasPage />} />
             <Route path="recreditos" element={<RecreditosPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
+            <Route path="plan-cuentas" element={<PlanCuentasPage />} />
+            <Route path="comprobantes" element={<ComprobantesPage />} />
+            <Route path="libro-diario" element={<LibroDiarioPage />} />
+            <Route path="libro-mayor" element={<LibroMayorPage />} />
+            <Route path="balance-comprobacion" element={<BalanceComprobacionPage />} />
+            <Route path="balance-general" element={<BalanceGeneralPage />} />
+            <Route path="estado-resultados" element={<EstadoResultadosPage />} />
+            <Route path="tipos-cambio" element={<TiposCambioPage />} />
+            <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
+            <Route path="informes-asfi" element={<AdminInformesAsfiPage />} />
             <Route path="configuracion" element={<AdminConfiguracionPage />} />
           </Route>
         </Route>
@@ -131,7 +156,9 @@ export default function AppRouter() {
             <Route path="dashboard" element={<OficialDashboardPage />} />
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
+            <Route path="alertas" element={<AlertasPage />} />
             <Route path="recreditos" element={<RecreditosPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />
@@ -143,7 +170,18 @@ export default function AppRouter() {
           <Route element={<ContadorLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ContadorDashboardPage />} />
+            <Route path="plan-cuentas" element={<PlanCuentasPage />} />
+            <Route path="comprobantes" element={<ComprobantesPage />} />
+            <Route path="libro-diario" element={<LibroDiarioPage />} />
+            <Route path="libro-mayor" element={<LibroMayorPage />} />
+            <Route path="balance-comprobacion" element={<BalanceComprobacionPage />} />
+            <Route path="balance-general" element={<BalanceGeneralPage />} />
+            <Route path="estado-resultados" element={<EstadoResultadosPage />} />
+            <Route path="tipos-cambio" element={<TiposCambioPage />} />
+            <Route path="parametros-contables" element={<ParametrosContablesPage />} />
+            <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
+            <Route path="informes-asfi" element={<ContadorInformesAsfiPage />} />
             <Route path="cumplimiento" element={<ContadorCumplimientoPage />} />
           </Route>
         </Route>

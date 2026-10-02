@@ -7,6 +7,8 @@ import Skeleton from '../../../components/ui/Skeleton'
 import DeclaracionUifModal from '../uif/DeclaracionUifModal'
 import CertificadoDpfModal from './CertificadoDpfModal'
 import LiquidacionDpfModal from './LiquidacionDpfModal'
+import ProcesarInteresesModal from './ProcesarInteresesModal'
+import PagosInteresTab from './PagosInteresTab'
 import { buscarCuentas } from '../../../core/api/cajaApi'
 import {
   getTarifarioDpf,
@@ -15,14 +17,27 @@ import {
   listDpf,
   getDpf,
 } from '../../../core/api/dpfApi'
+import { useAuthStore, selectUser } from '../../../core/store/authStore'
+import { normalizeRole } from '../../../core/utils/roles'
 
 function formatMoney(value, simbolo = 'Bs.') {
-  const n = Number(value ?? 0)
-  return `${simbolo} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const n = typeof value === 'number' ? value : parseFloat(value ?? 0)
+  const safe = isNaN(n) ? 0 : n
+  return `${simbolo} ${safe.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function PlazoFijoPage() {
-  const [activeTab, setActiveTab] = useState('simular') // 'simular' | 'cartera'
+  const user = useAuthStore(selectUser)
+  const roleName = user?.rol?.nombre || ''
+  const canProcessIntereses =
+    normalizeRole(roleName) === 'ADMIN' ||
+    normalizeRole(roleName) === 'OFICIAL' ||
+    roleName === 'ADMINISTRADOR' ||
+    roleName === 'OFICIAL_CREDITO'
+
+  const [activeTab, setActiveTab] = useState('simular') // 'simular' | 'cartera' | 'intereses'
+  const [modalProcesarOpen, setModalProcesarOpen] = useState(false)
+  const [keyTabIntereses, setKeyTabIntereses] = useState(0)
 
   // Tarifario de tasas
   const [tarifario, setTarifario] = useState([])
@@ -231,7 +246,19 @@ export default function PlazoFijoPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Depósitos a Plazo Fijo (DPF)"
-        subtitle="Simulación financiera, emisión de certificados fiduciarios y liquidación de rendimientos (CU-W17 / CU-W19)."
+        subtitle="Simulación financiera, emisión de certificados fiduciarios y liquidación de rendimientos (CU-W17 / CU-W18 / CU-W19)."
+        action={
+          canProcessIntereses ? (
+            <Button
+              variant="primary"
+              className="gap-2"
+              onClick={() => setModalProcesarOpen(true)}
+            >
+              <span className="material-symbols-outlined text-[18px]">payments</span>
+              <span>Procesar Intereses (CU-W18)</span>
+            </Button>
+          ) : null
+        }
       />
 
       {/* Pestañas Principales */}
@@ -263,6 +290,19 @@ export default function PlazoFijoPage() {
         >
           <span className="material-symbols-outlined text-[18px]">folder_special</span>
           <span>Cartera de DPFs (CU-W19)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('intereses')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
+            activeTab === 'intereses'
+              ? 'border-[#064e3b] text-[#064e3b]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+          <span>Pagos de Interés (CU-W18)</span>
         </button>
       </div>
 
@@ -622,6 +662,14 @@ export default function PlazoFijoPage() {
         </div>
       )}
 
+      {/* ── Pestaña 3: Pagos de Interés (CU-W18) ── */}
+      {activeTab === 'intereses' && (
+        <PagosInteresTab
+          key={keyTabIntereses}
+          onVerCertificado={handleVerCertificado}
+        />
+      )}
+
       {/* Modal Declaración Jurada UIF (CU-W14) */}
       <DeclaracionUifModal
         open={showUifModal}
@@ -655,6 +703,16 @@ export default function PlazoFijoPage() {
         onSuccess={() => {
           setSelectedDpfLiquidacion(null)
           cargarCartera()
+        }}
+      />
+
+      {/* Modal Procesar Intereses (CU-W18) */}
+      <ProcesarInteresesModal
+        open={modalProcesarOpen}
+        onClose={() => setModalProcesarOpen(false)}
+        onSuccess={() => {
+          cargarCartera()
+          setKeyTabIntereses((k) => k + 1)
         }}
       />
     </div>

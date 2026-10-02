@@ -336,6 +336,18 @@ export default function AdminCreditosPage() {
                       ) : (
                         <span className="text-[11px] text-slate-400 italic block mt-0.5">Sin descripción</span>
                       )}
+                      {p.tipo_credito_asfi && (
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <Badge variant="navy" className="text-[10px] py-0 px-1.5">
+                            {p.tipo_credito_asfi.replace(/_/g, ' ')}
+                          </Badge>
+                          {p.sector_productivo && (
+                            <Badge variant="green" className="text-[10px] py-0 px-1.5">
+                              Productivo
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* Moneda */}
@@ -349,6 +361,9 @@ export default function AdminCreditosPage() {
                     <td className="px-4 py-3.5 text-xs text-right font-display font-semibold text-slate-900 tabular-nums">
                       <span className="block font-bold text-slate-900">{formatMoney(p.monto_max, sim)}</span>
                       <span className="text-[10px] text-slate-400 block">Min: {formatMoney(p.monto_min, sim)}</span>
+                      <span className="text-[10px] text-purple-700 font-sans block mt-0.5" title="Monto máximo para aprobación directa antes de derivación a comité">
+                        Dir: {Number(p.monto_aprobacion_directa ?? 0) > 0 ? formatMoney(p.monto_aprobacion_directa, sim) : 'Comité (0)'}
+                      </span>
                     </td>
 
                     {/* Plazo */}
@@ -371,7 +386,9 @@ export default function AdminCreditosPage() {
                     <td className="px-4 py-3.5 text-xs">
                       <div>
                         {p.requiere_garantia ? (
-                          <Badge variant="amber">Garantía Requerida</Badge>
+                          <Badge variant="amber">
+                            Garantía ({parseFloat(p.cobertura_minima_garantia ?? 100).toFixed(0)}%)
+                          </Badge>
                         ) : (
                           <Badge variant="slate">Sin Garantía</Badge>
                         )}

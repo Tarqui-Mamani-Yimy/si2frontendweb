@@ -20,6 +20,15 @@ function getNavIcon(label = '', path = '') {
   if (l.includes('bitácora') || l.includes('bitacora')) return 'receipt_long'
   if (l.includes('configura')) return 'settings'
   if (l.includes('cooperativa') || l.includes('tenant')) return 'domain'
+  if (l.includes('plan-cuentas') || l.includes('plan de cuentas')) return 'account_tree'
+  if (l.includes('comprobante')) return 'receipt_long'
+  if (l.includes('diario')) return 'menu_book'
+  if (l.includes('mayor')) return 'auto_stories'
+  if (l.includes('balance general') || l.includes('balance-general')) return 'account_balance_wallet'
+  if (l.includes('balance')) return 'balance'
+  if (l.includes('resultado')) return 'query_stats'
+  if (l.includes('cambio')) return 'currency_exchange'
+  if (l.includes('parámetro') || l.includes('parametro')) return 'tune'
   if (l.includes('cuenta')) return 'account_balance'
   if (l.includes('cumplimiento')) return 'verified_user'
   return 'folder_open'
@@ -61,7 +70,7 @@ export default function AppShell({ navItems = [] }) {
     <div className="flex h-screen bg-[#f8f9ff] text-[#0b1c30] overflow-hidden">
 
       {/* ── Sidebar Institucional NexaCoop Precision ── */}
-      <aside className="flex w-[260px] shrink-0 flex-col bg-[#06281E] border-r border-white/5 z-30 shadow-[0_1px_8px_rgba(0,0,0,0.08)]">
+      <aside className="flex w-[260px] shrink-0 flex-col bg-[#06281E] border-r border-white/5 z-30 shadow-[0_1px_8px_rgba(0,0,0,0.08)] print:hidden">
 
         {/* Encabezado Sidebar */}
         <div className="h-16 px-4 flex items-center justify-between bg-[#041d16] border-b border-white/5">
@@ -135,7 +144,7 @@ export default function AppShell({ navItems = [] }) {
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
 
         {/* Header / Topbar */}
-        <header className="h-16 shrink-0 bg-white/90 backdrop-blur-md border-b border-[#e2e8f0] px-6 flex items-center justify-between z-20 shadow-xs">
+        <header className="h-16 shrink-0 bg-white/90 backdrop-blur-md border-b border-[#e2e8f0] px-6 flex items-center justify-between z-20 shadow-xs print:hidden">
           {/* Lado izquierdo: Breadcrumb & Omni-search */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -210,7 +219,9 @@ export default function AppShell({ navItems = [] }) {
       </div>
 
       {/* ── Asistente Chatbot Flotante Castor IA ── */}
-      <CastorChatbot />
+      <div className="print:hidden">
+        <CastorChatbot />
+      </div>
     </div>
   )
 }

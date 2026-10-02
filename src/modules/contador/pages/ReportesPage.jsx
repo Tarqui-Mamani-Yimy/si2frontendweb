@@ -1,5 +1,1 @@
-import ModulePlaceholder from '../../../shared/components/ModulePlaceholder'
-
-export default function ReportesPage() {
-  return <ModulePlaceholder title="Reportes Contables" />
-}
+export { default } from '../../admin/pages/ReportesPage'

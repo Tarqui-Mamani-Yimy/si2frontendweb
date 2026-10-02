@@ -7,6 +7,8 @@ import AlertBanner from '../../../../components/ui/AlertBanner'
 import TablaAmortizacion from './TablaAmortizacion'
 import CobroCuotaPanel from './CobroCuotaPanel'
 import HistorialPagosTable from './HistorialPagosTable'
+import HistorialGestionesTable from './HistorialGestionesTable'
+import GarantiasCreditoTab from '../garantias/GarantiasCreditoTab'
 import ComprobantePagoModal from './ComprobantePagoModal'
 import { getCredito } from '../../../../core/api/creditosApi'
 
@@ -221,6 +223,32 @@ export default function CreditoDetalleModal({
               <span className="material-symbols-outlined text-[16px]">history</span>
               <span>Historial de Pagos</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('gestiones')}
+              className={`px-4 py-2.5 text-xs font-bold transition-colors border-b-2 flex items-center gap-1.5 ${
+                activeTab === 'gestiones'
+                  ? 'border-[#064e3b] text-[#064e3b]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">support_agent</span>
+              <span>Gestiones de Cobranza (CU-W28)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('garantias')}
+              className={`px-4 py-2.5 text-xs font-bold transition-colors border-b-2 flex items-center gap-1.5 ${
+                activeTab === 'garantias'
+                  ? 'border-[#064e3b] text-[#064e3b]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">shield</span>
+              <span>Garantías y Custodia (CU-W22)</span>
+            </button>
           </div>
 
           {error && (
@@ -400,6 +428,20 @@ export default function CreditoDetalleModal({
                       setComprobanteModalOpen(true)
                     }}
                   />
+                </div>
+
+                {/* ══════════════════════════════════════════════════════════════
+                    PESTAÑA 4: HISTORIAL DE GESTIONES DE COBRANZA (CU-W28)
+                   ══════════════════════════════════════════════════════════════ */}
+                <div className={activeTab === 'gestiones' ? 'block' : 'hidden'}>
+                  <HistorialGestionesTable creditoId={credito.id} />
+                </div>
+
+                {/* ══════════════════════════════════════════════════════════════
+                    PESTAÑA 5: GARANTÍAS Y AVALES EN CUSTODIA (CU-W22)
+                   ══════════════════════════════════════════════════════════════ */}
+                <div className={activeTab === 'garantias' ? 'block' : 'hidden'}>
+                  <GarantiasCreditoTab creditoId={credito.id} credito={credito} />
                 </div>
               </>
             )

@@ -32,14 +32,18 @@ export default function ProductoCreditoModal({
     moneda_id: producto?.moneda?.id ?? (monedas[0]?.id ?? 1),
     monto_min: producto?.monto_min != null ? String(producto.monto_min) : '',
     monto_max: producto?.monto_max != null ? String(producto.monto_max) : '',
+    monto_aprobacion_directa: producto?.monto_aprobacion_directa != null ? String(producto.monto_aprobacion_directa) : '0.00',
     plazo_min_meses: producto?.plazo_min_meses != null ? String(producto.plazo_min_meses) : '',
     plazo_max_meses: producto?.plazo_max_meses != null ? String(producto.plazo_max_meses) : '',
     tasa_interes_anual: producto?.tasa_interes_anual != null ? String(producto.tasa_interes_anual) : '',
     tipo_amortizacion: producto?.tipo_amortizacion ?? 'FRANCES',
+    tipo_credito_asfi: producto?.tipo_credito_asfi ?? '',
+    sector_productivo: Boolean(producto?.sector_productivo ?? false),
     dias_gracia_mora: producto?.dias_gracia_mora != null ? String(producto.dias_gracia_mora) : '0',
     tasa_mora_anual: producto?.tasa_mora_anual != null ? String(producto.tasa_mora_anual) : '0.00',
     relacion_cuota_ingreso_max: producto?.relacion_cuota_ingreso_max != null ? String(producto.relacion_cuota_ingreso_max) : '40.00',
     requiere_garantia: Boolean(producto?.requiere_garantia ?? false),
+    cobertura_minima_garantia: producto?.cobertura_minima_garantia != null ? String(producto.cobertura_minima_garantia) : '100.00',
   }))
 
   const [errors, setErrors] = useState({})
@@ -90,6 +94,11 @@ export default function ProductoCreditoModal({
       errs.monto_max = 'No puede ser menor al monto mínimo.'
     }
 
+    const montoDirecto = parseFloat(form.monto_aprobacion_directa)
+    if (isNaN(montoDirecto) || montoDirecto < 0) {
+      errs.monto_aprobacion_directa = 'Debe ser 0 o un valor positivo.'
+    }
+
     const minPlazo = parseInt(form.plazo_min_meses, 10)
     const maxPlazo = parseInt(form.plazo_max_meses, 10)
     if (isNaN(minPlazo) || minPlazo <= 0) {
@@ -125,6 +134,24 @@ export default function ProductoCreditoModal({
       errs.relacion_cuota_ingreso_max = 'Debe ser mayor a 0% y menor o igual a 100%.'
     }
 
+    if (form.requiere_garantia) {
+      const cobMin = parseFloat(form.cobertura_minima_garantia)
+      if (isNaN(cobMin) || cobMin < 0 || cobMin > 500) {
+        errs.cobertura_minima_garantia = 'Debe ser un porcentaje entre 0.00% y 500.00%.'
+      }
+    }
+
+    const ASFI_TIPOS = [
+      'MICROCREDITO',
+      'MICROCREDITO_AGROPECUARIO',
+      'CONSUMO',
+      'VIVIENDA_HIPOTECARIA',
+      'VIVIENDA_SIN_GARANTIA',
+    ]
+    if (form.tipo_credito_asfi && !ASFI_TIPOS.includes(form.tipo_credito_asfi)) {
+      errs.tipo_credito_asfi = 'Seleccione una clasificación regulatoria ASFI válida.'
+    }
+
     return errs
   }
 
@@ -145,8 +172,11 @@ export default function ProductoCreditoModal({
         nombre: form.nombre.trim(),
         descripcion: form.descripcion.trim() || null,
         moneda_id: Number(form.moneda_id),
+        tipo_credito_asfi: form.tipo_credito_asfi || null,
+        sector_productivo: Boolean(form.sector_productivo),
         monto_min: parseFloat(form.monto_min).toFixed(2),
         monto_max: parseFloat(form.monto_max).toFixed(2),
+        monto_aprobacion_directa: parseFloat(form.monto_aprobacion_directa || '0').toFixed(2),
         plazo_min_meses: parseInt(form.plazo_min_meses, 10),
         plazo_max_meses: parseInt(form.plazo_max_meses, 10),
         tasa_interes_anual: parseFloat(form.tasa_interes_anual).toFixed(2),
@@ -155,6 +185,7 @@ export default function ProductoCreditoModal({
         tasa_mora_anual: parseFloat(form.tasa_mora_anual).toFixed(2),
         relacion_cuota_ingreso_max: parseFloat(form.relacion_cuota_ingreso_max).toFixed(2),
         requiere_garantia: Boolean(form.requiere_garantia),
+        cobertura_minima_garantia: parseFloat(form.cobertura_minima_garantia || '100.00').toFixed(2),
       }
 
       if (isEdit) {
@@ -277,6 +308,63 @@ export default function ProductoCreditoModal({
           </div>
         </div>
 
+        {/* ── Sección: Clasificación Regulatoria ASFI (CU-W34) ── */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+            <span className="material-symbols-outlined text-[18px] text-[#064e3b]">gavel</span>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              Clasificación Regulatoria ASFI (CU-W34)
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+            <div className="sm:col-span-2">
+              <FormField
+                id="tipo_credito_asfi"
+                label="Tipo de Crédito ASFI"
+                error={errors.tipo_credito_asfi}
+              >
+                <select
+                  id="tipo_credito_asfi"
+                  value={form.tipo_credito_asfi}
+                  onChange={(e) => handleChange('tipo_credito_asfi', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-sm text-[#0b1c30] outline-none transition focus:border-[#006c49] focus:bg-white focus:ring-2 focus:ring-[#006c49]/20"
+                >
+                  <option value="">— Sin clasificar —</option>
+                  <option value="MICROCREDITO">Microcrédito (Art. 8.1)</option>
+                  <option value="MICROCREDITO_AGROPECUARIO">Microcrédito Agropecuario (Art. 8.2)</option>
+                  <option value="CONSUMO">Consumo (Art. 8)</option>
+                  <option value="VIVIENDA_HIPOTECARIA">Vivienda con Garantía Hipotecaria (Art. 7)</option>
+                  <option value="VIVIENDA_SIN_GARANTIA">Vivienda sin Garantía Hipotecaria (Art. 7)</option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Define los tramos normativos de mora y la alícuota porcentual de previsión regulatoria.
+                </p>
+              </FormField>
+            </div>
+
+            <div className="pt-6 sm:pt-7">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="sector_productivo"
+                  checked={form.sector_productivo}
+                  onChange={(e) => handleChange('sector_productivo', e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#064e3b] focus:ring-[#064e3b]"
+                />
+                <div className="text-xs">
+                  <span className="font-semibold text-slate-800 block">
+                    Sector Productivo
+                  </span>
+                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                    Aplica tasa preferencial de previsión para microcrédito/PYME productivo.
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* ── Sección 2: Montos y Plazos ── */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
@@ -325,6 +413,27 @@ export default function ProductoCreditoModal({
               />
             </FormField>
           </div>
+
+          <FormField
+            id="monto_aprobacion_directa"
+            label={`Monto Máx. Aprobación Directa (${monedaSimbolo})`}
+            error={errors.monto_aprobacion_directa}
+          >
+            <Input
+              id="monto_aprobacion_directa"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.monto_aprobacion_directa}
+              onChange={(e) => handleChange('monto_aprobacion_directa', e.target.value)}
+              placeholder="0.00"
+              hasError={Boolean(errors.monto_aprobacion_directa)}
+              className="tabular-nums"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Montos aprobados por encima de este valor pasan obligatoriamente a Comité de Crédito (0 = todas las solicitudes aprobadas van a comité).
+            </p>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-3">
             <FormField
@@ -475,7 +584,7 @@ export default function ProductoCreditoModal({
         </div>
 
         {/* ── Sección 4: Requisitos Adicionales ── */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
           <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -493,6 +602,33 @@ export default function ProductoCreditoModal({
               </span>
             </div>
           </label>
+
+          {form.requiere_garantia && (
+            <div className="pt-3 border-t border-slate-200/80">
+              <FormField
+                id="cobertura_minima_garantia"
+                label="Cobertura Mínima de Garantía (%)"
+                required
+                error={errors.cobertura_minima_garantia}
+              >
+                <Input
+                  id="cobertura_minima_garantia"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="500"
+                  value={form.cobertura_minima_garantia}
+                  onChange={(e) => handleChange('cobertura_minima_garantia', e.target.value)}
+                  placeholder="100.00"
+                  hasError={Boolean(errors.cobertura_minima_garantia)}
+                  className="tabular-nums"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  Porcentaje mínimo sobre el monto solicitado que debe cubrir el valor realizable de las garantías verificadas (ej. 100% para microcrédito, 125% para vivienda).
+                </span>
+              </FormField>
+            </div>
+          )}
         </div>
       </form>
     </Modal>

@@ -8,6 +8,7 @@ import Skeleton from '../../../components/ui/Skeleton'
 import SolicitudModal from '../components/solicitudes/SolicitudModal'
 import DetalleSolicitudModal from '../components/solicitudes/DetalleSolicitudModal'
 import AnularSolicitudModal from '../components/solicitudes/AnularSolicitudModal'
+import ActaComiteModal from '../components/comite/ActaComiteModal'
 import { listSolicitudesCredito } from '../../../core/api/creditosApi'
 import { useAuthStore, selectUser } from '../../../core/store/authStore'
 import { normalizeRole } from '../../../core/utils/roles'
@@ -36,6 +37,8 @@ function getEstadoBadgeVariant(estado) {
       return 'amber'
     case 'EN_EVALUACION':
       return 'indigo'
+    case 'EN_COMITE':
+      return 'purple'
     case 'APROBADO':
       return 'green'
     case 'RECHAZADO':
@@ -87,6 +90,7 @@ export default function OficialSolicitudesPage() {
   const [solicitudDetalle, setSolicitudDetalle] = useState(null)
   const [modalInitialTab, setModalInitialTab] = useState('expediente')
   const [solicitudToAnular, setSolicitudToAnular] = useState(null)
+  const [actaModalSolicitudId, setActaModalSolicitudId] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -467,9 +471,19 @@ export default function OficialSolicitudesPage() {
 
                     {/* Estado */}
                     <td className="px-4 py-3.5 text-xs text-center">
-                      <Badge variant={getEstadoBadgeVariant(s.estado)}>
-                        {s.estado}
-                      </Badge>
+                      <div className="inline-flex flex-col items-center gap-0.5">
+                        <Badge variant={getEstadoBadgeVariant(s.estado)}>
+                          {s.estado}
+                        </Badge>
+                        {s.resultado_comite && (
+                          <span
+                            className="text-[10px] text-purple-700 font-semibold"
+                            title={`Resultado de resolución en comité de crédito (Ronda ${s.ronda_comite || 1})`}
+                          >
+                            Comité: {s.resultado_comite}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Acciones */}
@@ -494,6 +508,20 @@ export default function OficialSolicitudesPage() {
                               <span>Resolver</span>
                             </Button>
                           )}
+
+                        {/* Botón Ver Acta de Comité */}
+                        {(s.ronda_comite > 0 || s.resultado_comite || s.estado === 'EN_COMITE') && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setActaModalSolicitudId(s.id)}
+                            className="gap-1 !text-xs !py-1 !px-2 text-purple-800 border-purple-200 hover:bg-purple-50"
+                            title="Ver Acta de Comité"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">receipt_long</span>
+                          </Button>
+                        )}
 
                         <Button
                           type="button"
@@ -587,6 +615,15 @@ export default function OficialSolicitudesPage() {
           solicitud={solicitudToAnular}
           onClose={() => setSolicitudToAnular(null)}
           onSuccess={handleAnularSuccess}
+        />
+      )}
+
+      {/* ── Modal de Acta Oficial de Comité (CU-W25) ── */}
+      {actaModalSolicitudId && (
+        <ActaComiteModal
+          open={Boolean(actaModalSolicitudId)}
+          onClose={() => setActaModalSolicitudId(null)}
+          solicitudId={actaModalSolicitudId}
         />
       )}
     </div>

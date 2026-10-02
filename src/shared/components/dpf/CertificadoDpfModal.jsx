@@ -3,8 +3,20 @@ import Button from '../../../components/ui/Button'
 import Badge from '../../../components/ui/Badge'
 
 function formatMoney(value, simbolo = 'Bs.') {
-  const n = Number(value ?? 0)
-  return `${simbolo} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const n = typeof value === 'number' ? value : parseFloat(value ?? 0)
+  const safe = isNaN(n) ? 0 : n
+  return `${simbolo} ${safe.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function formatDate(isoStr) {
+  if (!isoStr) return '—'
+  const d = new Date(isoStr)
+  if (isNaN(d.getTime())) return isoStr
+  return d.toLocaleDateString('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
 }
 
 /**
@@ -210,17 +222,25 @@ export default function CertificadoDpfModal({ open, onClose, datos, cooperativaN
                   {datos.cronograma.map((c, idx) => (
                     <tr key={idx} className="hover:bg-slate-50">
                       <td className="py-1 px-3 font-sans font-medium">#{c.numero}</td>
-                      <td className="py-1 px-3">{c.fecha_pago}</td>
+                      <td className="py-1 px-3">
+                        <span>{c.fecha_pago}</span>
+                        {c.fecha_pago_real && (
+                          <span className="block text-[9px] text-emerald-700 font-sans font-medium">
+                            Abonado: {formatDate(c.fecha_pago_real)}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-1 px-3 text-right">{c.dias}</td>
                       <td className="py-1 px-3 text-right">{formatMoney(c.interes_bruto, sim)}</td>
                       <td className="py-1 px-3 text-right text-slate-400">{formatMoney(c.retencion_rciva, sim)}</td>
                       <td className="py-1 px-3 text-right font-bold text-emerald-800">{formatMoney(c.interes_neto, sim)}</td>
                       <td className="py-1 px-3 text-center font-sans">
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
-                          c.estado === 'PAGADO' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                        }`}>
+                        <Badge
+                          variant={c.estado === 'PAGADO' ? 'green' : 'slate'}
+                          className="!text-[9px] !py-0 !px-1.5"
+                        >
                           {c.estado ?? 'PENDIENTE'}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}
