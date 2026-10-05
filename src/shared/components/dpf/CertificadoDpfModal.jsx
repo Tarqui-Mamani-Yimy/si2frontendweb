@@ -1,6 +1,7 @@
 import Modal from '../../../components/ui/Modal'
 import Button from '../../../components/ui/Button'
 import Badge from '../../../components/ui/Badge'
+import { calculateKnownMaturityTotal, formatNullableMoney } from './dpfUtils'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = typeof value === 'number' ? value : parseFloat(value ?? 0)
@@ -163,7 +164,7 @@ export default function CertificadoDpfModal({ open, onClose, datos, cooperativaN
           <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
             <span className="text-[10px] uppercase font-bold text-slate-500 block">Interés Neto</span>
             <span className="font-display text-base font-bold text-slate-800 tabular-nums">
-              +{formatMoney(datos.interes_neto, sim)}
+              {datos.interes_neto == null ? '—' : `+${formatNullableMoney(datos.interes_neto, sim)}`}
             </span>
             <span className="text-[10px] text-slate-400 block">
               {datos.exento_rciva ? 'Exento RC-IVA' : `RC-IVA: -${formatMoney(datos.retencion_rciva, sim)}`}
@@ -173,7 +174,7 @@ export default function CertificadoDpfModal({ open, onClose, datos, cooperativaN
           <div className="p-2.5 rounded-lg bg-emerald-100/70 border border-emerald-300">
             <span className="text-[10px] uppercase font-bold text-emerald-950 block">Monto al Vencimiento</span>
             <span className="font-display text-base font-bold text-emerald-950 tabular-nums">
-              {formatMoney(Number(datos.monto) + Number(datos.interes_neto), sim)}
+              {formatNullableMoney(calculateKnownMaturityTotal(datos.monto, datos.interes_neto), sim)}
             </span>
             <span className="text-[10px] text-emerald-800 block">Capital + Interés Neto</span>
           </div>

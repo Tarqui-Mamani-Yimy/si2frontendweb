@@ -9,6 +9,7 @@ import CertificadoDpfModal from './CertificadoDpfModal'
 import LiquidacionDpfModal from './LiquidacionDpfModal'
 import ProcesarInteresesModal from './ProcesarInteresesModal'
 import PagosInteresTab from './PagosInteresTab'
+import { formatNullableMoney } from './dpfUtils'
 import { buscarCuentas } from '../../../core/api/cajaApi'
 import {
   getTarifarioDpf,
@@ -629,6 +630,12 @@ export default function PlazoFijoPage() {
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">Capital</span>
                         <span className="font-mono font-bold text-slate-900 text-sm">
                           {formatMoney(d.monto, sim)}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Interés neto</span>
+                        <span className="font-mono font-bold text-slate-900 text-sm">
+                          {formatNullableMoney(d.interes_neto, sim)}
                         </span>
                       </div>
 
