@@ -23,6 +23,10 @@ import SuperAdminCooperativasPage from '../modules/superadmin/pages/Cooperativas
 import SuperAdminBitacoraPage from '../modules/superadmin/pages/BitacoraPage'
 import SuperAdminBackupsPage from '../modules/superadmin/pages/BackupsPage'
 
+// ── Landing Pública ───────────────────────────────────────────
+import LandingPage from '../modules/landing/pages/LandingPage'
+import { selectIsAuthenticated, useAuthStore } from '../core/store/authStore'
+
 // ── Admin ─────────────────────────────────────────────────────
 import AdminBitacoraPage from '../modules/admin/pages/BitacoraPage'
 import AdminCajaPage from '../modules/admin/pages/CajaPage'
@@ -80,6 +84,14 @@ import SocioMisCreditosPage from '../modules/socio/pages/MisCreditosPage'
 
 // ── Shared / DPF ──────────────────────────────────────────────
 import PlazoFijoPage from '../shared/components/dpf/PlazoFijoPage'
+
+function RootRoute() {
+  const isAuthenticated = useAuthStore(selectIsAuthenticated)
+  if (isAuthenticated) {
+    return <RootRedirect />
+  }
+  return <LandingPage />
+}
 
 export default function AppRouter() {
   return (
@@ -211,8 +223,8 @@ export default function AppRouter() {
 
       </Route>
 
-      {/* Raíz y cualquier ruta desconocida → redirige según rol o a /login */}
-      <Route path="/" element={<RootRedirect />} />
+      {/* Raíz pública (Landing) para no autenticados, dashboard para autenticados */}
+      <Route path="/" element={<RootRoute />} />
       <Route path="*" element={<RootRedirect />} />
     </Routes>
   )
