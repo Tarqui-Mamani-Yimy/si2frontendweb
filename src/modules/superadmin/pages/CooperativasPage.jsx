@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as cooperativasApi from '../../../core/api/cooperativasApi'
+import SubscriptionBadge from '../../../shared/components/SubscriptionBadge'
 
 const ESTADOS = ['ACTIVO', 'INACTIVO']
 
@@ -129,6 +130,20 @@ function CooperativaModal({ inicial, onClose, onSubmit, saving, error }) {
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
             </label>
+
+            <div className="sm:col-span-2 rounded-lg bg-slate-50 border border-slate-200 p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Plan de suscripción
+                  </span>
+                  <p className="mt-0.5 text-xs text-slate-600">
+                    Plan institucional asignado a la entidad
+                  </p>
+                </div>
+                <SubscriptionBadge />
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -325,6 +340,7 @@ export default function CooperativasPage() {
                 <th className="px-6 py-3">Nombre</th>
                 <th className="px-6 py-3">NIT</th>
                 <th className="px-6 py-3">Correo</th>
+                <th className="px-6 py-3">Plan</th>
                 <th className="px-6 py-3">Estado</th>
                 <th className="px-6 py-3">Creada</th>
                 <th className="px-6 py-3 text-right">Acciones</th>
@@ -341,6 +357,9 @@ export default function CooperativasPage() {
                   </td>
                   <td className="px-6 py-3.5 text-slate-700">{coop.nit || '—'}</td>
                   <td className="px-6 py-3.5 text-slate-700">{coop.correo || '—'}</td>
+                  <td className="px-6 py-3.5">
+                    <SubscriptionBadge />
+                  </td>
                   <td className="px-6 py-3.5">
                     <EstadoBadge estado={coop.estado} />
                   </td>

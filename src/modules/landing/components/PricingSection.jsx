@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DEFAULT_SUBSCRIPTION } from '../../../shared/constants/subscription'
 
 const PLANS = [
   {
@@ -43,24 +44,14 @@ const PLANS = [
     ],
   },
   {
-    name: 'Red Enterprise',
-    description: 'Para federaciones, redes intercooperativas y grandes uniones de crédito fiduciarias',
+    name: DEFAULT_SUBSCRIPTION.name,
+    description: DEFAULT_SUBSCRIPTION.description,
     price: 299,
     yearlyPrice: 2390,
     buttonText: 'Solicitar Ficha Corporativa',
     buttonVariant: 'outline',
-    features: [
-      { text: 'Multi-tenant federado ilimitado', icon: 'corporate_fare' },
-      { text: 'Almacenamiento HSM sin límite', icon: 'database' },
-      { text: 'Cluster dedicado de alta disponibilidad', icon: 'dns' },
-    ],
-    includes: [
-      'Todo lo de Crecimiento Pro, más:',
-      'Aislamiento de bases de datos por tenant',
-      'Matriz regulatoria Maker-Checker',
-      'Integración API Core interbancaria',
-      'SLA garantizado 99.99% con HSM',
-    ],
+    features: DEFAULT_SUBSCRIPTION.features,
+    includes: DEFAULT_SUBSCRIPTION.pricingIncludes,
   },
 ]
 

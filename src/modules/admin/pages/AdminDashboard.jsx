@@ -7,6 +7,7 @@ import AlertBanner from '../../../components/ui/AlertBanner'
 import Badge from '../../../components/ui/Badge'
 import Modal from '../../../components/ui/Modal'
 import Skeleton from '../../../components/ui/Skeleton'
+import SubscriptionCard from '../../../shared/components/SubscriptionCard'
 
 // ── Configuración de los módulos con preview ───────────────────────────────
 
@@ -734,6 +735,11 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* =========================================================================
+          SUSCRIPCIÓN INSTITUCIONAL: Tu suscripción
+          ========================================================================= */}
+      <SubscriptionCard title="Tu suscripción" />
 
       {/* =========================================================================
           MODAL PREVIEW (Detalle en vivo al hacer clic en cualquier KPI Card)
