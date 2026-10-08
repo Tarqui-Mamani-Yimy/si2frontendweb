@@ -21,6 +21,7 @@ import ResetPasswordPage from '../modules/auth/pages/ResetPasswordPage'
 // ── SuperAdmin ────────────────────────────────────────────────
 import SuperAdminCooperativasPage from '../modules/superadmin/pages/CooperativasPage'
 import SuperAdminBitacoraPage from '../modules/superadmin/pages/BitacoraPage'
+import SuperAdminBackupsPage from '../modules/superadmin/pages/BackupsPage'
 
 // ── Admin ─────────────────────────────────────────────────────
 import AdminBitacoraPage from '../modules/admin/pages/BitacoraPage'
@@ -101,6 +102,7 @@ export default function AppRouter() {
             <Route index element={<Navigate to="cooperativas" replace />} />
             <Route path="cooperativas" element={<SuperAdminCooperativasPage />} />
             <Route path="bitacora" element={<SuperAdminBitacoraPage />} />
+            <Route path="backups" element={<SuperAdminBackupsPage />} />
           </Route>
         </Route>
 
