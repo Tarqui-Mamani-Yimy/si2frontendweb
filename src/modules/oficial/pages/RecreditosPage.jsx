@@ -178,7 +178,7 @@ export default function RecreditosPage() {
       <PageHeader
         title="Ofertas de Re-crédito Preaprobadas"
         subtitle="Generación predictiva y preaprobación proactiva para socios puntuales (CU-W23 p2)"
-        actions={
+        action={
           <div className="flex items-center gap-2">
             <Button
               type="button"
