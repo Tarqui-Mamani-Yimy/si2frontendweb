@@ -3,28 +3,23 @@ import { Outlet } from 'react-router-dom'
 export default function AuthLayout() {
   return (
     <div
-      className="flex min-h-screen items-center justify-center px-4 py-12"
+      className="min-h-screen text-[#0b1c30] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden bg-[#f0f4f9]"
       style={{
-        background:
-          'linear-gradient(135deg, #1a4731 0%, #1e3a5f 55%, #1a3050 100%)',
+        backgroundImage:
+          'radial-gradient(at 0% 0%, rgba(111, 251, 190, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(6, 78, 59, 0.12) 0px, transparent 50%)',
       }}
     >
-      {/* Decoración de fondo — círculos difusos */}
+      {/* Fondos radiales difusos */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        <div
-          className="absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #4ade80, transparent 70%)' }}
-        />
-        <div
-          className="absolute -bottom-24 -right-24 h-80 w-80 rounded-full opacity-15"
-          style={{ background: 'radial-gradient(circle, #60a5fa, transparent 70%)' }}
-        />
-      </div>
+        className="pointer-events-none absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#6cf8bb]/15 blur-3xl"
+      />
 
-      <div className="relative w-full max-w-md animate-slide-up">
+      <div className="w-full flex justify-center items-center z-10 animate-fade-in">
         <Outlet />
       </div>
     </div>

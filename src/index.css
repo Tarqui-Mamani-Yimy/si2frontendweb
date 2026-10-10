@@ -1,38 +1,165 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-/* ── CoopIA Design Tokens ────────────────────────────────────────────────── */
-@theme {
-  /* ── Paleta principal CoopIA ── */
-  --color-coopia-green:        #1A3B2B;   /* verde bosque — sidebar, branding */
-  --color-coopia-green-light:  #234d39;   /* hover sobre verde */
-  --color-coopia-green-soft:   #e8f5ee;   /* tint suave para badges/chips */
-  --color-coopia-green-fg:     #c6f0d8;   /* texto sobre bg verde oscuro */
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --color-coopia-navy:         #111827;   /* azul marino casi negro — texto principal */
-  --color-coopia-navy-soft:    #1f2937;   /* headers, subheadings */
-
-  --color-coopia-accent:       #F4C553;   /* oro suave — botones de acción primaria */
-  --color-coopia-accent-hover: #e6b43e;   /* hover del dorado */
-  --color-coopia-accent-fg:    #111827;   /* texto sobre botón dorado */
-
-  --color-coopia-bg:           #F8F9FA;   /* fondo general — nunca blanco puro */
-  --color-coopia-card:         #ffffff;   /* cards y formularios */
-  --color-coopia-border:       rgba(17,24,39,0.07); /* bordes ultra sutiles */
-  --color-coopia-muted:        #6b7280;   /* texto secundario */
-
-  /* ── Tipografía ── */
-  --font-sans: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
-
-  /* ── Sombras ── */
-  --shadow-card:       0 0 0 1px rgba(17,24,39,0.05), 0 1px 4px rgba(17,24,39,0.05);
-  --shadow-card-hover: 0 0 0 1px rgba(17,24,39,0.08), 0 6px 20px rgba(17,24,39,0.08);
-  --shadow-metric:     0 2px 12px rgba(17,24,39,0.06), 0 1px 3px rgba(17,24,39,0.04);
-  --shadow-sidebar:    4px 0 24px rgba(17,24,39,0.12);
+/* Uiverse.io fiduciary loader */
+.loader {
+  position: relative;
+  width: 120px;
+  height: 90px;
+  margin: 0 auto;
 }
 
-/* ── Base ─────────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+.loader:before {
+  content: "";
+  position: absolute;
+  bottom: 30px;
+  left: 50px;
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  background: #2a9d8f;
+  animation: loading-bounce 0.5s ease-in-out infinite alternate;
+}
+
+.loader:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 7px;
+  width: 45px;
+  border-radius: 4px;
+  box-shadow: 0 5px 0 #f2f2f2, -35px 50px 0 #f2f2f2, -70px 95px 0 #f2f2f2;
+  animation: loading-step 1s ease-in-out infinite;
+}
+
+@keyframes loading-bounce {
+  0% { transform: scale(1, 0.7); }
+  40% { transform: scale(0.8, 1.2); }
+  60% { transform: scale(1, 1); }
+  100% { bottom: 140px; }
+}
+
+@keyframes loading-step {
+  0% {
+    box-shadow: 0 10px 0 rgba(0, 0, 0, 0),
+                0 10px 0 #f2f2f2,
+                -35px 50px 0 #f2f2f2,
+                -70px 90px 0 #f2f2f2;
+  }
+  100% {
+    box-shadow: 0 10px 0 #f2f2f2,
+                -35px 50px 0 #f2f2f2,
+                -70px 90px 0 #f2f2f2,
+                -70px 90px 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/* ── NexaCoop Precision Design Tokens ─────────────────────────────────────── */
+@theme {
+  /* ── Surface Scale ── */
+  --color-surface:                   #f8f9ff;
+  --color-surface-dim:               #cbdbf5;
+  --color-surface-bright:            #f8f9ff;
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #eff4ff;
+  --color-surface-container:         #e5eeff;
+  --color-surface-container-high:    #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-surface-variant:           #d3e4fe;
+  --color-surface-tint:              #2b6954;
+  --color-on-surface:                #0b1c30;
+  --color-on-surface-variant:        #404944;
+  --color-inverse-surface:           #213145;
+  --color-inverse-on-surface:        #eaf1ff;
+  --color-background:                #f8f9ff;
+  --color-on-background:             #0b1c30;
+
+  /* ── Brand & Semantic Scale ── */
+  --color-primary:                   #003527;
+  --color-primary-hover:             #047857;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #064e3b;
+  --color-on-primary-container:      #80bea6;
+  --color-inverse-primary:           #95d3ba;
+
+  --color-secondary:                 #006c49;
+  --color-on-secondary:              #ffffff;
+  --color-secondary-container:       #6cf8bb;
+  --color-on-secondary-container:    #00714d;
+
+  --color-tertiary:                  #00361e;
+  --color-on-tertiary:               #ffffff;
+  --color-tertiary-container:        #0c4f30;
+  --color-on-tertiary-container:     #81c098;
+
+  --color-error:                     #ba1a1a;
+  --color-on-error:                  #ffffff;
+  --color-error-container:           #ffdad6;
+  --color-on-error-container:        #93000a;
+
+  --color-primary-fixed:             #b0f0d6;
+  --color-primary-fixed-dim:         #95d3ba;
+  --color-on-primary-fixed:          #002117;
+  --color-on-primary-fixed-variant:  #0b513d;
+
+  --color-secondary-fixed:           #6ffbbe;
+  --color-secondary-fixed-dim:       #4edea3;
+  --color-on-secondary-fixed:        #002113;
+  --color-on-secondary-fixed-variant:#005236;
+
+  --color-tertiary-fixed:            #b0f1c7;
+  --color-tertiary-fixed-dim:        #95d4ac;
+  --color-on-tertiary-fixed:         #002111;
+  --color-on-tertiary-fixed-variant: #0f5132;
+
+  --color-outline:                   #707974;
+  --color-outline-variant:           #bfc9c3;
+
+  /* ── Backward Compatibility Tokens (CoopIA aliases) ── */
+  --color-coopia-green:              #064e3b;
+  --color-coopia-green-light:        #0c4f30;
+  --color-coopia-green-soft:         #eff4ff;
+  --color-coopia-green-fg:           #80bea6;
+  --color-coopia-navy:               #0b1c30;
+  --color-coopia-navy-soft:          #213145;
+  --color-forest:                    #064e3b;
+  --color-forest-2:                  #0c4f30;
+  --color-navy:                      #0b1c30;
+  --color-navy-2:                    #213145;
+  --color-coopia-accent:             #10b981;
+  --color-coopia-accent-hover:       #059669;
+  --color-coopia-accent-fg:          #ffffff;
+  --color-coopia-bg:                 #f8f9ff;
+  --color-coopia-card:               #ffffff;
+  --color-coopia-border:             #e2e8f0;
+  --color-coopia-muted:              #707974;
+
+  /* ── Typography Families ── */
+  --font-sans:     "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display:  "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ── Spacing Tokens ── */
+  --spacing-gutter:   1.5rem;
+  --spacing-margin:   2rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.25rem;
+
+  /* ── Elevation & Shadows ── */
+  --shadow-card:       0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+  --shadow-card-hover: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-metric:     0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+  --shadow-sidebar:    0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Base Setup ───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -41,20 +168,123 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-coopia-bg);
-  color: var(--color-coopia-navy);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
   line-height: 1.5;
 }
 
 h1, h2, h3, h4 {
+  font-family: var(--font-display);
   text-wrap: balance;
-  letter-spacing: -0.018em;
-  color: var(--color-coopia-navy);
+  letter-spacing: -0.02em;
 }
 
-/* ── Utilities CoopIA ─────────────────────────────────────────────────────── */
+/* ── Material Symbols ─────────────────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+/* ── Typography Utilities per DESIGN.md ──────────────────────────────────── */
 @layer utilities {
-  /* Green */
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  .text-display-hero, .font-display-hero {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    line-height: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .text-headline-lg, .font-headline-lg {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .text-headline-md, .font-headline-md {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-headline-sm, .font-headline-sm {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+  }
+
+  .text-body-lg, .font-body-lg {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6rem;
+    font-weight: 400;
+  }
+
+  .text-body-md, .font-body-md {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.45rem;
+    font-weight: 400;
+  }
+
+  .text-body-sm, .font-body-sm {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 400;
+  }
+
+  .text-label-numeric, .font-label-numeric {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-label-caps, .font-label-caps {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .text-table-header, .font-table-header {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Backward Compatibility Utility Classes */
   .bg-coopia-green        { background-color: var(--color-coopia-green); }
   .bg-coopia-green-light  { background-color: var(--color-coopia-green-light); }
   .bg-coopia-green-soft   { background-color: var(--color-coopia-green-soft); }
@@ -62,28 +292,23 @@ h1, h2, h3, h4 {
   .text-coopia-green-fg   { color: var(--color-coopia-green-fg); }
   .border-coopia-green    { border-color: var(--color-coopia-green); }
 
-  /* Navy */
   .text-coopia-navy       { color: var(--color-coopia-navy); }
   .bg-coopia-navy         { background-color: var(--color-coopia-navy); }
 
-  /* Accent dorado */
   .bg-coopia-accent       { background-color: var(--color-coopia-accent); }
   .bg-coopia-accent-hover { background-color: var(--color-coopia-accent-hover); }
   .text-coopia-accent     { color: var(--color-coopia-accent); }
   .text-coopia-accent-fg  { color: var(--color-coopia-accent-fg); }
 
-  /* Fondos */
   .bg-coopia-bg           { background-color: var(--color-coopia-bg); }
   .bg-coopia-card         { background-color: var(--color-coopia-card); }
   .text-coopia-muted      { color: var(--color-coopia-muted); }
 
-  /* Sombras */
   .shadow-card            { box-shadow: var(--shadow-card); }
   .shadow-card-hover      { box-shadow: var(--shadow-card-hover); }
   .shadow-metric          { box-shadow: var(--shadow-metric); }
   .shadow-sidebar         { box-shadow: var(--shadow-sidebar); }
 
-  /* Backward compat — aliases previos */
   .bg-forest              { background-color: var(--color-coopia-green); }
   .bg-forest-2            { background-color: var(--color-coopia-green-light); }
   .text-forest            { color: var(--color-coopia-green); }
@@ -92,10 +317,52 @@ h1, h2, h3, h4 {
   .bg-navy-2              { background-color: var(--color-coopia-navy-soft); }
   .text-navy              { color: var(--color-coopia-navy); }
 
-  /* Animaciones */
-  .animate-fade-in  { animation: fadeIn  0.2s  cubic-bezier(0.23,1,0.32,1) both; }
-  .animate-slide-up { animation: slideUp 0.25s cubic-bezier(0.23,1,0.32,1) both; }
+  /* Animations */
+  .animate-fade-in  { animation: fadeIn 0.2s cubic-bezier(0.23, 1, 0.32, 1) both; }
+  .animate-slide-up { animation: slideUp 0.25s cubic-bezier(0.23, 1, 0.32, 1) both; }
 }
 
-@keyframes fadeIn  { from { opacity: 0; }                           to { opacity: 1; } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Print Styles (CU-W31) ────────────────────────────────────────────────── */
+@media print {
+  aside,
+  header,
+  .print\:hidden,
+  .no-print {
+    display: none !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+    color: #0b1c30 !important;
+    font-size: 11px !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .shadow-card,
+  .shadow-sm,
+  .shadow-xs {
+    box-shadow: none !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border-color: #cbd5e1 !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

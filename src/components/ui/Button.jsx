@@ -1,42 +1,48 @@
 /**
- * Button — botón reutilizable CoopIA.
+ * Button — componente de botón NexaCoop Precision Design System.
  *
  * Props:
- *   variant: 'primary' | 'secondary' | 'danger' | 'ghost'
+ *   variant: 'primary' | 'secondary' | 'accent' | 'danger' | 'ghost'
  *   size:    'sm' | 'md' | 'lg'
  *   loading: boolean
- *   as:      'button' | 'a' (para enlaces con Link de react-router)
+ *   disabled: boolean
+ *   as:      'button' | 'a'
  */
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 font-semibold rounded-xl ' +
+  'inline-flex items-center justify-center gap-2 font-semibold rounded-lg ' +
   'transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 ' +
-  'focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55 ' +
-  'active:scale-[0.97] select-none'
+  'focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ' +
+  'active:scale-[0.98] select-none'
 
 const VARIANTS = {
   primary:
-    'bg-navy text-white hover:bg-navy-2 focus-visible:ring-navy ' +
-    'shadow-[0_1px_2px_rgba(30,58,95,0.2)]',
+    'bg-[#064e3b] text-white border border-[#04382a] hover:bg-[#0c4f30] ' +
+    'focus-visible:ring-[#064e3b] shadow-sm',
+  accent:
+    'bg-[#10b981] text-white border border-[#059669] hover:bg-[#059669] ' +
+    'focus-visible:ring-[#10b981] shadow-sm',
   secondary:
-    'bg-white text-slate-700 ring-1 ring-inset ring-slate-200 ' +
-    'hover:bg-slate-50 focus-visible:ring-slate-400',
+    'bg-white text-[#0b1c30] border border-[#e2e8f0] hover:bg-slate-50 ' +
+    'hover:border-[#cbd5e1] focus-visible:ring-slate-400 shadow-xs',
   danger:
-    'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+    'bg-[#dc2626] text-white border border-[#b91c1c] hover:bg-[#b91c1c] ' +
+    'focus-visible:ring-red-500 shadow-sm',
   ghost:
-    'bg-transparent text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400',
+    'bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900 ' +
+    'focus-visible:ring-slate-300',
 }
 
 const SIZES = {
-  sm: 'text-xs px-3 py-1.5',
-  md: 'text-sm px-4 py-2',
-  lg: 'text-sm px-5 py-2.5',
+  sm: 'text-xs px-3 py-1.5 min-h-[32px]',
+  md: 'text-sm px-4 py-2 min-h-[40px]',
+  lg: 'text-base px-5 py-2.5 min-h-[44px]',
 }
 
 function Spinner() {
   return (
     <svg
-      className="h-4 w-4 animate-spin"
+      className="h-4 w-4 animate-spin shrink-0"
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"

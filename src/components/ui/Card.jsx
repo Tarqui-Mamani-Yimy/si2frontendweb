@@ -1,5 +1,5 @@
 /**
- * Card — contenedor base CoopIA.
+ * Card — contenedor base NexaCoop Precision.
  *
  * Props:
  *   as:        elemento HTML ('div' por defecto)
@@ -9,7 +9,7 @@
 export default function Card({ as: Tag = 'div', className = '', children, ...rest }) {
   return (
     <Tag
-      className={`rounded-2xl bg-white shadow-card transition-shadow hover:shadow-card-hover ${className}`}
+      className={`rounded-xl bg-white border border-[#e2e8f0] shadow-card transition-all duration-200 hover:shadow-card-hover hover:border-[#cbd5e1] ${className}`}
       {...rest}
     >
       {children}

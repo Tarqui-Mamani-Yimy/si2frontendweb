@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { registrarUsuario } from '../../../core/api/adminApi'
+import { listCooperativas } from '../../../core/api/cooperativasApi'
+import { selectUser, useAuthStore } from '../../../core/store/authStore'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Button from '../../../components/ui/Button'
+import PasswordInput from '../../../components/ui/PasswordInput'
+import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../../../core/utils/password'
 
 const FIELD_CLASS =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 ' +
@@ -21,14 +25,35 @@ function errorMessage(error) {
 }
 
 export default function RegistrarUsuarioPage() {
+  const user = useAuthStore(selectUser)
+  const isSuperAdmin = user?.rol?.nombre === 'SUPERADMIN'
+  // Un SUPERADMIN siempre elige la cooperativa del nuevo usuario. Un
+  // ADMINISTRADOR que todavía no tiene cooperativa asignada (bootstrap de su
+  // tenant) también debe poder elegirla; uno que ya pertenece a una queda
+  // forzado a la suya en el backend, así que aquí no necesita el campo.
+  const canChooseCooperativa = isSuperAdmin || !user?.cooperativa_id
+
   const [form, setForm] = useState({
     nombre: '',
     correo: '',
     contrasena: '',
     rol: 'CAJERO',
+    cooperativa_id: '',
   })
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState(null)
+
+  const [cooperativas, setCooperativas] = useState([])
+  const [loadingCoops, setLoadingCoops] = useState(canChooseCooperativa)
+
+  useEffect(() => {
+    if (!canChooseCooperativa) return
+    setLoadingCoops(true)
+    listCooperativas({ estado: 'ACTIVO' })
+      .then(setCooperativas)
+      .catch(() => setCooperativas([]))
+      .finally(() => setLoadingCoops(false))
+  }, [canChooseCooperativa])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -40,10 +65,13 @@ export default function RegistrarUsuarioPage() {
     setStatus('loading')
     setMessage(null)
     try {
-      await registrarUsuario(form)
+      const payload = canChooseCooperativa
+        ? { ...form, cooperativa_id: Number(form.cooperativa_id) }
+        : { nombre: form.nombre, correo: form.correo, contrasena: form.contrasena, rol: form.rol }
+      await registrarUsuario(payload)
       setStatus('success')
       setMessage('Usuario registrado correctamente.')
-      setForm({ nombre: '', correo: '', contrasena: '', rol: 'CAJERO' })
+      setForm({ nombre: '', correo: '', contrasena: '', rol: 'CAJERO', cooperativa_id: '' })
     } catch (error) {
       setStatus('error')
       setMessage(errorMessage(error))
@@ -93,9 +121,50 @@ export default function RegistrarUsuarioPage() {
             </select>
           </div>
 
+          {canChooseCooperativa && (
+            <div>
+              <label htmlFor="cooperativa_id" className="mb-1.5 block text-sm font-medium text-slate-700">Cooperativa</label>
+              <select
+                id="cooperativa_id"
+                name="cooperativa_id"
+                required
+                value={form.cooperativa_id}
+                onChange={updateField}
+                className={FIELD_CLASS}
+                disabled={isLoading || loadingCoops}
+              >
+                <option value="" disabled>
+                  {loadingCoops ? 'Cargando cooperativas…' : 'Selecciona una cooperativa'}
+                </option>
+                {cooperativas.map((coop) => (
+                  <option key={coop.id} value={coop.id}>{coop.nombre}</option>
+                ))}
+              </select>
+              {!loadingCoops && cooperativas.length === 0 && (
+                <p className="mt-1.5 text-xs text-amber-600">
+                  No hay cooperativas activas registradas. Crea una primero en Cooperativas.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="sm:col-span-2">
             <label htmlFor="contrasena" className="mb-1.5 block text-sm font-medium text-slate-700">Contraseña temporal</label>
-            <input id="contrasena" name="contrasena" type="password" required minLength={8} maxLength={128} value={form.contrasena} onChange={updateField} className={FIELD_CLASS} placeholder="Mínimo 8 caracteres" disabled={isLoading} />
+            <PasswordInput
+              id="contrasena"
+              name="contrasena"
+              required
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={128}
+              pattern={PASSWORD_PATTERN}
+              title={PASSWORD_HINT}
+              value={form.contrasena}
+              onChange={updateField}
+              className={FIELD_CLASS}
+              placeholder={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres`}
+              disabled={isLoading}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">{PASSWORD_HINT}</p>
           </div>
         </div>
 
