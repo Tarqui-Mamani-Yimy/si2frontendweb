@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: 'Alertas', path: '/admin/alertas' },
   { label: 'Re-créditos', path: '/admin/recreditos' },
   { label: 'Comité', path: '/admin/comite' },
+  { label: 'Ahorros y aportes', path: '/admin/caja' },
   { label: 'Créditos', path: '/admin/creditos' },
   { label: 'Caja', path: '/admin/caja' },
   { label: 'Plan de Cuentas', path: '/admin/plan-cuentas' },

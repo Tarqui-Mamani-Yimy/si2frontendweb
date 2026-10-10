@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import castorAvatar from '../../assets/screen copy.png'
+import { enviarMensaje } from '../../core/api/chatApi'
 
 const QUICK_PROMPTS = [
   '¿Cuál es la tasa de mora actual?',
@@ -8,64 +9,68 @@ const QUICK_PROMPTS = [
   'Políticas de crédito fiduciario',
 ]
 
+const MENSAJE_INICIAL = {
+  id: 0,
+  sender: 'castor',
+  text: '¡Hola! Soy Castor, tu copiloto financiero. Puedo darte información real de créditos, mora, socios, caja y precalificación. ¿En qué te puedo asesorar hoy?',
+  time: '',
+}
+
+function horaActual() {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 export default function CastorChatbot() {
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'castor',
-      text: '¡Hola! Soy Castor, tu copiloto financiero inteligente en NexaCoop. ¿En qué te puedo asesorar hoy?',
-      time: 'Ahora',
-    },
-  ])
+  const [messages, setMessages] = useState([MENSAJE_INICIAL])
   const [inputValue, setInputValue] = useState('')
+  const [sending, setSending] = useState(false)
+  const [suggestions, setSuggestions] = useState(QUICK_PROMPTS)
   const messagesEndRef = useRef(null)
+  const nextId = useRef(1)
 
   useEffect(() => {
     if (open) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [messages, open])
+  }, [messages, open, sending])
 
-  function handleSend(textToSend) {
-    const text = textToSend || inputValue
-    if (!text.trim()) return
+  async function handleSend(textToSend) {
+    const text = (textToSend ?? inputValue).trim()
+    if (!text || sending) return
 
-    setMessages((prev) => {
-      const userMsg = {
-        id: prev.length + 1,
-        sender: 'user',
-        text: text.trim(),
-        time: '',
+    const userMsg = { id: nextId.current++, sender: 'user', text, time: horaActual() }
+    const historial = [...messages, userMsg]
+      .filter((m) => m.text)
+      .map((m) => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))
+
+    setMessages((prev) => [...prev, userMsg])
+    setInputValue('')
+    setSending(true)
+
+    try {
+      const data = await enviarMensaje(text, historial)
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId.current++, sender: 'castor', text: data.respuesta, time: horaActual() },
+      ])
+      if (Array.isArray(data.sugerencias) && data.sugerencias.length) {
+        setSuggestions(data.sugerencias)
       }
-      return [...prev, userMsg]
-    })
-    if (!textToSend) setInputValue('')
-
-    // Simulación UI instantánea de respuesta de Castor (sin llamadas a backend)
-    setTimeout(() => {
-      let replyText = 'Entendido. Estoy procesando tu consulta con los modelos fiduciarios de NexaCoop.'
-      const lower = text.toLowerCase()
-      if (lower.includes('mora')) {
-        replyText = 'La mora global institucional se sitúa actualmente en 1.2%, cumpliendo con la meta de riesgo (< 2.5%).'
-      } else if (lower.includes('socio') || lower.includes('miembro')) {
-        replyText = 'Se registran 2,845 socios activos en el sistema, con 42 nuevos ingresos validados durante el ciclo actual.'
-      } else if (lower.includes('caja') || lower.includes('cierre')) {
-        replyText = 'Las operaciones de caja registran 148 transacciones hoy. El cierre programado está previsto para las 17:00.'
-      } else if (lower.includes('crédito') || lower.includes('credito')) {
-        replyText = 'La colocación asciende a $1.42M USD (94.2% de la meta mensual) con 98.8% de cartera sana.'
-      }
-
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
-          id: prev.length + 1,
+          id: nextId.current++,
           sender: 'castor',
-          text: replyText,
-          time: '',
+          text: 'No pude procesar tu consulta en este momento. Verifica tu conexión e inténtalo de nuevo.',
+          time: horaActual(),
+          error: true,
         },
       ])
-    }, 450)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -115,10 +120,12 @@ export default function CastorChatbot() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed ${
+                  className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
                     m.sender === 'user'
                       ? 'bg-[#064e3b] text-white rounded-tr-xs shadow-xs'
-                      : 'bg-white text-[#0b1c30] border border-[#e2e8f0] rounded-tl-xs shadow-xs'
+                      : m.error
+                        ? 'bg-red-50 text-red-700 border border-red-200 rounded-tl-xs shadow-xs'
+                        : 'bg-white text-[#0b1c30] border border-[#e2e8f0] rounded-tl-xs shadow-xs'
                   }`}
                 >
                   <p>{m.text}</p>
@@ -132,17 +139,31 @@ export default function CastorChatbot() {
                 </div>
               </div>
             ))}
+
+            {sending && (
+              <div className="flex gap-2.5 justify-start">
+                <div className="h-7 w-7 rounded-full bg-[#064e3b] p-0.5 shrink-0 overflow-hidden border border-emerald-500/20">
+                  <img src={castorAvatar} alt="Castor" className="w-full h-full object-cover rounded-full" />
+                </div>
+                <div className="bg-white border border-[#e2e8f0] rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" />
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Quick prompts */}
           <div className="px-3 py-2 bg-white border-t border-[#e2e8f0]/80 overflow-x-auto flex gap-1.5 scrollbar-none">
-            {QUICK_PROMPTS.map((q, idx) => (
+            {suggestions.map((q, idx) => (
               <button
                 key={idx}
                 type="button"
+                disabled={sending}
                 onClick={() => handleSend(q)}
-                className="whitespace-nowrap text-[11px] font-medium text-[#006c49] bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200/60 transition-colors shrink-0"
+                className="whitespace-nowrap text-[11px] font-medium text-[#006c49] bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1 rounded-full border border-emerald-200/60 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {q}
               </button>
@@ -166,7 +187,7 @@ export default function CastorChatbot() {
             />
             <button
               type="submit"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || sending}
               aria-label="Enviar mensaje"
               className="h-9 w-9 rounded-lg bg-[#064e3b] text-white flex items-center justify-center hover:bg-[#0c4f30] disabled:opacity-40 disabled:cursor-not-allowed transition shadow-xs"
             >
@@ -200,7 +221,7 @@ export default function CastorChatbot() {
           <div className="h-full w-full rounded-full overflow-hidden flex items-center justify-center p-0.5 bg-[#042c21]">
             <img
               src={castorAvatar}
-              alt="Castor NexaCoop Mascot"
+              alt="Castor Mascot"
               className="w-full h-full object-cover pointer-events-none rounded-full"
             />
           </div>

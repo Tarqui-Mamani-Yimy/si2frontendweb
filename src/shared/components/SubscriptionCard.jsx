@@ -1,14 +1,38 @@
-import { DEFAULT_SUBSCRIPTION } from '../constants/subscription'
+import { DEFAULT_SUBSCRIPTION, normalizeSuscripcion } from '../constants/subscription'
 
 /**
  * SubscriptionCard — Dashboard card displaying the cooperative's active subscription plan.
  * Highlights the plan name, active status, description, and included capabilities without displaying pricing.
+ * Data comes from the backend (`/suscripciones/mi-suscripcion`); DEFAULT_SUBSCRIPTION is only a fallback.
  */
 export default function SubscriptionCard({
-  plan = DEFAULT_SUBSCRIPTION,
+  suscripcion = null,
+  loading = false,
+  error = null,
   title = 'Tu suscripción',
   className = '',
 }) {
+  const plan = suscripcion ? normalizeSuscripcion(suscripcion) : { ...DEFAULT_SUBSCRIPTION }
+
+  if (loading) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-xl bg-white dark:bg-[#0b1f19] p-6 border border-[#e2e8f0] dark:border-emerald-900/40 shadow-card ${className}`}
+      >
+        <div className="animate-pulse space-y-4">
+          <div className="h-5 w-40 rounded-full bg-slate-200 dark:bg-emerald-900/40" />
+          <div className="h-8 w-64 rounded-lg bg-slate-200 dark:bg-emerald-900/40" />
+          <div className="h-4 w-full max-w-2xl rounded bg-slate-100 dark:bg-emerald-900/30" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <div className="h-12 rounded-lg bg-slate-100 dark:bg-emerald-900/30" />
+            <div className="h-12 rounded-lg bg-slate-100 dark:bg-emerald-900/30" />
+            <div className="h-12 rounded-lg bg-slate-100 dark:bg-emerald-900/30" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`relative overflow-hidden rounded-xl bg-white dark:bg-[#0b1f19] p-6 border border-[#e2e8f0] dark:border-emerald-900/40 shadow-card transition-all ${className}`}
@@ -29,9 +53,15 @@ export default function SubscriptionCard({
           </span>
           <span className="text-slate-300 dark:text-emerald-900">•</span>
           <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold tracking-wider uppercase">
-            Plan Institucional Fijo
+            Plan Institucional
           </span>
         </div>
+
+        {error && (
+          <p className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            {error}
+          </p>
+        )}
 
         {/* Plan Title & Description */}
         <div className="mt-2">
@@ -90,7 +120,11 @@ export default function SubscriptionCard({
 
         {/* Footer Note */}
         <div className="mt-5 pt-3 border-t border-slate-100 dark:border-emerald-900/30 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 dark:text-slate-500">
-          <span>Entorno federado de alta disponibilidad para entidades financieras</span>
+          <span>
+            {plan.fechaFin
+              ? `Vigente hasta ${new Date(plan.fechaFin).toLocaleDateString('es-BO', { year: 'numeric', month: 'long', day: '2-digit' })}`
+              : 'Entorno federado de alta disponibilidad para entidades financieras'}
+          </span>
           <span className="font-semibold text-[#006c49] dark:text-[#4edea3]">
             Soporte Fiduciario Continuo
           </span>
