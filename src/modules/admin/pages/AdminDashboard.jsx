@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchAdminStats, fetchSocios, listUsuarios } from '../../../core/api/adminApi'
 import { listCuentas } from '../../../core/api/savingsApi'
+import { getMiSuscripcion } from '../../../core/api/suscripcionesApi'
 import { selectUser, useAuthStore } from '../../../core/store/authStore'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import Badge from '../../../components/ui/Badge'
@@ -104,6 +105,10 @@ export default function AdminDashboard() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError,   setPreviewError]   = useState(null)
 
+  const [suscripcion,        setSuscripcion]        = useState(null)
+  const [loadingSuscripcion, setLoadingSuscripcion] = useState(true)
+  const [errorSuscripcion,   setErrorSuscripcion]   = useState(null)
+
   useEffect(() => {
     setLoadingStats(true)
     setErrorStats(null)
@@ -111,6 +116,15 @@ export default function AdminDashboard() {
       .then(setStats)
       .catch((err) => setErrorStats(err?.response?.data?.detail ?? err.message ?? 'Error al cargar estadísticas'))
       .finally(() => setLoadingStats(false))
+  }, [])
+
+  useEffect(() => {
+    setLoadingSuscripcion(true)
+    setErrorSuscripcion(null)
+    getMiSuscripcion()
+      .then(setSuscripcion)
+      .catch((err) => setErrorSuscripcion(err?.response?.data?.detail ?? 'No se pudo cargar la suscripción'))
+      .finally(() => setLoadingSuscripcion(false))
   }, [])
 
   function openPreview(moduleKey) {
@@ -739,7 +753,12 @@ export default function AdminDashboard() {
       {/* =========================================================================
           SUSCRIPCIÓN INSTITUCIONAL: Tu suscripción
           ========================================================================= */}
-      <SubscriptionCard title="Tu suscripción" />
+      <SubscriptionCard
+        title="Tu suscripción"
+        suscripcion={suscripcion}
+        loading={loadingSuscripcion}
+        error={errorSuscripcion}
+      />
 
       {/* =========================================================================
           MODAL PREVIEW (Detalle en vivo al hacer clic en cualquier KPI Card)

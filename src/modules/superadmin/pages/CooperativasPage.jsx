@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as cooperativasApi from '../../../core/api/cooperativasApi'
+import * as suscripcionesApi from '../../../core/api/suscripcionesApi'
 import SubscriptionBadge from '../../../shared/components/SubscriptionBadge'
 
 const ESTADOS = ['ACTIVO', 'INACTIVO']
@@ -35,7 +36,7 @@ function EstadoBadge({ estado }) {
   )
 }
 
-function CooperativaModal({ inicial, onClose, onSubmit, saving, error }) {
+function CooperativaModal({ inicial, suscripcion, onClose, onSubmit, saving, error }) {
   const [form, setForm] = useState(inicial ?? EMPTY_FORM)
 
   function handleChange(event) {
@@ -138,10 +139,12 @@ function CooperativaModal({ inicial, onClose, onSubmit, saving, error }) {
                     Plan de suscripción
                   </span>
                   <p className="mt-0.5 text-xs text-slate-600">
-                    Plan institucional asignado a la entidad
+                    {suscripcion
+                      ? 'Plan institucional asignado a la entidad'
+                      : 'Se asignará el plan institucional por defecto'}
                   </p>
                 </div>
-                <SubscriptionBadge />
+                <SubscriptionBadge suscripcion={suscripcion} />
               </div>
             </div>
           </div>
@@ -176,6 +179,7 @@ function CooperativaModal({ inicial, onClose, onSubmit, saving, error }) {
 
 export default function CooperativasPage() {
   const [cooperativas, setCooperativas] = useState([])
+  const [suscripciones, setSuscripciones] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busqueda, setBusqueda] = useState('')
@@ -202,6 +206,26 @@ export default function CooperativasPage() {
           err.response?.data?.detail ?? 'No se pudo cargar el listado de cooperativas',
         )
         setLoading(false)
+      })
+    return () => {
+      activo = false
+    }
+  }, [reloadKey])
+
+  useEffect(() => {
+    let activo = true
+    suscripcionesApi
+      .listSuscripciones()
+      .then((data) => {
+        if (!activo) return
+        const mapa = {}
+        for (const item of data) {
+          mapa[item.cooperativa_id] = item
+        }
+        setSuscripciones(mapa)
+      })
+      .catch(() => {
+        // El plan es informativo: si falla, la página sigue funcionando.
       })
     return () => {
       activo = false
@@ -358,7 +382,7 @@ export default function CooperativasPage() {
                   <td className="px-6 py-3.5 text-slate-700">{coop.nit || '—'}</td>
                   <td className="px-6 py-3.5 text-slate-700">{coop.correo || '—'}</td>
                   <td className="px-6 py-3.5">
-                    <SubscriptionBadge />
+                    <SubscriptionBadge suscripcion={suscripciones[coop.id] ?? null} />
                   </td>
                   <td className="px-6 py-3.5">
                     <EstadoBadge estado={coop.estado} />
@@ -399,6 +423,7 @@ export default function CooperativasPage() {
       {modalAbierto && (
         <CooperativaModal
           inicial={editando}
+          suscripcion={editando?.id ? suscripciones[editando.id] ?? null : null}
           saving={saving}
           error={modalError}
           onClose={() => setModalAbierto(false)}
