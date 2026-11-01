@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import castorAvatar from '../../assets/screen copy.png'
-import { enviarMensaje } from '../../core/api/chatApi'
+import { descargarReporte, enviarMensaje } from '../../core/api/chatApi'
 
 const QUICK_PROMPTS = [
-  '¿Cuál es la tasa de mora actual?',
+  'Genera el reporte de morosidad en PDF',
   'Resumen de socios activos',
   'Estado de cierre de caja',
-  'Políticas de crédito fiduciario',
+  '¿Cuál es la tasa de mora actual?',
 ]
 
 const MENSAJE_INICIAL = {
   id: 0,
   sender: 'castor',
-  text: '¡Hola! Soy Castor, tu copiloto financiero. Puedo darte información real de créditos, mora, socios, caja y precalificación. ¿En qué te puedo asesorar hoy?',
+  text: '¡Hola! Soy Castor, tu copiloto financiero. Puedo darte información real de créditos, mora, socios, caja y precalificación, y generar reportes gerenciales y contables en PDF. ¿En qué te puedo asesorar hoy?',
   time: '',
 }
 
@@ -26,6 +26,7 @@ export default function CastorChatbot() {
   const [inputValue, setInputValue] = useState('')
   const [sending, setSending] = useState(false)
   const [suggestions, setSuggestions] = useState(QUICK_PROMPTS)
+  const [downloadingId, setDownloadingId] = useState(null)
   const messagesEndRef = useRef(null)
   const nextId = useRef(1)
 
@@ -52,7 +53,13 @@ export default function CastorChatbot() {
       const data = await enviarMensaje(text, historial)
       setMessages((prev) => [
         ...prev,
-        { id: nextId.current++, sender: 'castor', text: data.respuesta, time: horaActual() },
+        {
+          id: nextId.current++,
+          sender: 'castor',
+          text: data.respuesta,
+          time: horaActual(),
+          reporte: data.reporte ?? null,
+        },
       ])
       if (Array.isArray(data.sugerencias) && data.sugerencias.length) {
         setSuggestions(data.sugerencias)
@@ -70,6 +77,29 @@ export default function CastorChatbot() {
       ])
     } finally {
       setSending(false)
+    }
+  }
+
+  async function handleDescargarReporte(message) {
+    if (!message.reporte || downloadingId) return
+    setDownloadingId(message.id)
+    try {
+      await descargarReporte(message.reporte)
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId.current++,
+          sender: 'castor',
+          text: error?.message
+            ? `No pude descargar el PDF: ${error.message}. Inténtalo desde el módulo de reportes.`
+            : 'No pude descargar el PDF en este momento. Inténtalo desde el módulo de reportes.',
+          time: horaActual(),
+          error: true,
+        },
+      ])
+    } finally {
+      setDownloadingId(null)
     }
   }
 
@@ -129,6 +159,19 @@ export default function CastorChatbot() {
                   }`}
                 >
                   <p>{m.text}</p>
+                  {m.reporte && (
+                    <button
+                      type="button"
+                      onClick={() => handleDescargarReporte(m)}
+                      disabled={downloadingId === m.id}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#006c49] px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-[#0c4f30] disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">
+                        {downloadingId === m.id ? 'hourglass_top' : 'picture_as_pdf'}
+                      </span>
+                      {downloadingId === m.id ? 'Generando…' : 'Descargar PDF'}
+                    </button>
+                  )}
                   <span
                     className={`block mt-1 text-[10px] text-right ${
                       m.sender === 'user' ? 'text-emerald-200/70' : 'text-slate-400'
