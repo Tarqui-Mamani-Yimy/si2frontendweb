@@ -263,26 +263,40 @@ export default function ComitePage() {
         </AlertBanner>
       )}
 
-      {/* ── Tarjetas Métricas Superiores ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── Tarjetas Métricas Superiores (Formato compacto y equilibrado) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <MetricCard
-          title="En Cola de Comité"
+          compact
+          label="En Cola de Comité"
           value={loading ? '—' : totalPendientes}
           subtitle="Solicitudes derivadas a deliberación"
           icon="how_to_vote"
+          iconBg="bg-teal-50"
+          iconColor="text-teal-700"
+          delta={totalPendientes > 0 ? `${totalPendientes} activas` : undefined}
+          deltaPos={true}
         />
         <MetricCard
-          title="Pendientes de Mi Voto"
+          compact
+          label="Pendientes de Mi Voto"
           value={loading ? '—' : pendientesMiVoto}
           subtitle={`Rol activo: ${roleName || 'Miembro'}`}
           icon="pending_actions"
-          variant={pendientesMiVoto > 0 ? 'accent' : 'default'}
+          iconBg={pendientesMiVoto > 0 ? 'bg-amber-50' : 'bg-slate-100'}
+          iconColor={pendientesMiVoto > 0 ? 'text-amber-700' : 'text-slate-600'}
+          delta={pendientesMiVoto > 0 ? 'Requieren tu voto' : 'Al día'}
+          deltaPos={pendientesMiVoto === 0}
         />
         <MetricCard
-          title="En Espera de Quórum"
+          compact
+          label="En Espera de Quórum"
           value={loading ? '—' : enEsperaOtros}
-          subtitle="Esperando votos de otros vocales (3 requeridos)"
+          subtitle="Esperando votos de vocales (3 req.)"
           icon="group"
+          iconBg="bg-blue-50"
+          iconColor="text-blue-700"
+          delta={enEsperaOtros > 0 ? 'Faltan firmas' : 'Sin demoras'}
+          deltaPos={true}
         />
       </div>
 
