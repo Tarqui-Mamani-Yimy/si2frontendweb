@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import castorAvatar from '../../assets/screen copy.png'
 import { descargarReporte, enviarMensaje } from '../../core/api/chatApi'
 
@@ -27,8 +27,29 @@ export default function CastorChatbot() {
   const [sending, setSending] = useState(false)
   const [suggestions, setSuggestions] = useState(QUICK_PROMPTS)
   const [downloadingId, setDownloadingId] = useState(null)
+  const [listening, setListening] = useState(false)
+  const [speechEnabled, setSpeechEnabled] = useState(false)
+  const [voiceStatus, setVoiceStatus] = useState('')
   const messagesEndRef = useRef(null)
+  const recognitionRef = useRef(null)
+  const voiceSubmittedRef = useRef(false)
+  const handleSendRef = useRef(null)
   const nextId = useRef(1)
+  const SpeechRecognition =
+    typeof window !== 'undefined'
+      ? window.SpeechRecognition ?? window.webkitSpeechRecognition
+      : null
+  const speechSynthesisSupported =
+    typeof window !== 'undefined' &&
+    'speechSynthesis' in window &&
+    'SpeechSynthesisUtterance' in window
+
+  useEffect(() => () => {
+    recognitionRef.current?.stop()
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
+  }, [])
 
   useEffect(() => {
     if (open) {
@@ -36,7 +57,7 @@ export default function CastorChatbot() {
     }
   }, [messages, open, sending])
 
-  async function handleSend(textToSend) {
+  const handleSend = useCallback(async (textToSend) => {
     const text = (textToSend ?? inputValue).trim()
     if (!text || sending) return
 
@@ -51,6 +72,15 @@ export default function CastorChatbot() {
 
     try {
       const data = await enviarMensaje(text, historial)
+      if (speechEnabled && speechSynthesisSupported) {
+        const utterance = new window.SpeechSynthesisUtterance(data.respuesta)
+        utterance.lang = 'es-BO'
+        utterance.onend = () => setVoiceStatus('Lectura de respuesta finalizada.')
+        utterance.onerror = () => setVoiceStatus('No se pudo reproducir la respuesta de voz.')
+        window.speechSynthesis.cancel()
+        window.speechSynthesis.speak(utterance)
+        setVoiceStatus('Leyendo respuesta en voz alta.')
+      }
       setMessages((prev) => [
         ...prev,
         {
@@ -78,6 +108,96 @@ export default function CastorChatbot() {
     } finally {
       setSending(false)
     }
+  }, [inputValue, messages, sending, speechEnabled, speechSynthesisSupported])
+
+  useEffect(() => {
+    handleSendRef.current = handleSend
+  }, [handleSend])
+
+  function closeChat() {
+    recognitionRef.current?.stop()
+    setListening(false)
+    if (speechSynthesisSupported) window.speechSynthesis.cancel()
+    setOpen(false)
+  }
+
+  function toggleVoiceInput() {
+    if (listening) {
+      recognitionRef.current?.stop()
+      setListening(false)
+      setVoiceStatus('Dictado detenido.')
+      return
+    }
+
+    if (!SpeechRecognition) {
+      setVoiceStatus('El dictado por voz no está disponible en este navegador.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-BO'
+    recognition.continuous = false
+    recognition.interimResults = true
+    voiceSubmittedRef.current = false
+    recognitionRef.current = recognition
+
+    recognition.onstart = () => {
+      setListening(true)
+      setVoiceStatus('Escuchando…')
+    }
+    recognition.onresult = (event) => {
+      let transcript = ''
+      let interim = ''
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const phrase = event.results[index][0].transcript
+        if (event.results[index].isFinal) transcript += phrase
+        else interim += phrase
+      }
+
+      if (interim) setVoiceStatus(`Escuchando: ${interim}`)
+      const finalTranscript = transcript.trim()
+      if (finalTranscript && !voiceSubmittedRef.current) {
+        voiceSubmittedRef.current = true
+        setInputValue(finalTranscript)
+        setVoiceStatus('Consulta reconocida; enviándola a Castor…')
+        handleSendRef.current?.(finalTranscript)
+      }
+    }
+    recognition.onerror = (event) => {
+      const errorMessages = {
+        'not-allowed': 'Permite el acceso al micrófono en el navegador para usar el dictado.',
+        'service-not-allowed': 'El navegador no permite usar el servicio de reconocimiento de voz.',
+        'no-speech': 'No se detectó voz. Intenta hablar de nuevo.',
+        'audio-capture': 'No se encontró un micrófono disponible.',
+      }
+      setListening(false)
+      setVoiceStatus(errorMessages[event.error] ?? 'Ocurrió un error al reconocer la voz.')
+    }
+    recognition.onend = () => setListening(false)
+
+    try {
+      recognition.start()
+    } catch {
+      setListening(false)
+      setVoiceStatus('No se pudo iniciar el micrófono. Intenta de nuevo.')
+    }
+  }
+
+  function toggleSpeechOutput() {
+    if (!speechSynthesisSupported) {
+      setVoiceStatus('La lectura en voz alta no está disponible en este navegador.')
+      return
+    }
+    setSpeechEnabled((enabled) => {
+      const nextEnabled = !enabled
+      if (!nextEnabled) {
+        window.speechSynthesis.cancel()
+        setVoiceStatus('Lectura en voz alta desactivada.')
+      } else {
+        setVoiceStatus('Las próximas respuestas se leerán en voz alta.')
+      }
+      return nextEnabled
+    })
   }
 
   async function handleDescargarReporte(message) {
@@ -127,15 +247,40 @@ export default function CastorChatbot() {
                 <p className="text-[11px] text-emerald-200/80">Ecosistema Fiduciario Inteligente</p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Cerrar panel de chat"
-              className="p-1 rounded-lg text-emerald-100/70 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={toggleSpeechOutput}
+                disabled={!speechSynthesisSupported}
+                aria-label={speechEnabled ? 'Desactivar lectura en voz alta' : 'Activar lectura en voz alta'}
+                aria-pressed={speechEnabled}
+                title={
+                  speechSynthesisSupported
+                    ? 'Alternar lectura en voz alta'
+                    : 'Lectura en voz alta no disponible en este navegador'
+                }
+                className="p-1 rounded-lg text-emerald-100/70 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {speechEnabled ? 'volume_up' : 'volume_off'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={closeChat}
+                aria-label="Cerrar panel de chat"
+                className="p-1 rounded-lg text-emerald-100/70 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
           </div>
+
+          {voiceStatus && (
+            <p className="px-4 py-1.5 bg-emerald-50 text-[11px] text-emerald-800" aria-live="polite">
+              {voiceStatus}
+            </p>
+          )}
 
           {/* Messages list */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8f9ff]">
@@ -229,6 +374,27 @@ export default function CastorChatbot() {
               className="flex-1 h-9 px-3 text-xs sm:text-sm rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#006c49] focus:ring-1 focus:ring-[#006c49] outline-none transition"
             />
             <button
+              type="button"
+              onClick={toggleVoiceInput}
+              disabled={sending}
+              aria-label={listening ? 'Detener dictado por voz' : 'Dictar consulta por voz'}
+              aria-pressed={listening}
+              title={
+                SpeechRecognition
+                  ? 'Dictar consulta en español'
+                  : 'Dictado por voz no disponible en este navegador'
+              }
+              className={`h-9 w-9 rounded-lg flex items-center justify-center transition shadow-xs disabled:opacity-40 disabled:cursor-not-allowed ${
+                listening
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-emerald-100 text-[#064e3b] hover:bg-emerald-200'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {listening ? 'mic_off' : 'mic'}
+              </span>
+            </button>
+            <button
               type="submit"
               disabled={!inputValue.trim() || sending}
               aria-label="Enviar mensaje"
@@ -257,7 +423,7 @@ export default function CastorChatbot() {
         )}
         <button
           type="button"
-          onClick={() => setOpen((prev) => !prev)}
+          onClick={() => (open ? closeChat() : setOpen(true))}
           aria-label="Abrir Castor Asistente IA"
           className="relative h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-[#064e3b] p-1 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer border border-[#04382a]"
         >
