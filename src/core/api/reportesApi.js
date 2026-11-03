@@ -110,3 +110,44 @@ export async function exportIndicadoresReport(params = {}) {
   })
   return response
 }
+
+/**
+ * Interpret a transcribed voice command into a report export.
+ * POST /api/v1/reportes/comando-voz
+ * @param {string} texto Transcribed command, e.g. "reporte de cartera en PDF".
+ * @returns {Promise<{
+ *   reconocido: boolean,
+ *   transcripcion: string,
+ *   mensaje?: string,
+ *   sugerencias?: string[],
+ *   tipo?: string,
+ *   nombre?: string,
+ *   descripcion?: string,
+ *   endpoint?: string,
+ *   parametros?: object,
+ *   formato?: 'csv' | 'pdf' | 'html' | null,
+ *   accion?: 'descargar' | 'mostrar',
+ *   archivo?: string,
+ *   formatos?: string[],
+ * }>}
+ */
+export async function interpretarComandoVoz(texto) {
+  const { data } = await client.post('/reportes/comando-voz', { texto })
+  return data
+}
+
+/**
+ * Download any report export returned by the voice command.
+ * GET /api/v1{endpoint}?...parametros&formato=
+ * @param {string} endpoint Export path relative to /api/v1.
+ * @param {object} parametros Query parameters from the interpreted command.
+ * @param {'csv' | 'pdf' | 'html'} formato
+ * @returns {Promise<any>}
+ */
+export async function exportReporte(endpoint, parametros, formato) {
+  return client.get(endpoint, {
+    params: { ...parametros, formato },
+    responseType: 'blob',
+    timeout: 60000,
+  })
+}

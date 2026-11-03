@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import PageHeader from '../../../components/ui/PageHeader'
 import Button from '../../../components/ui/Button'
 import AlertBanner from '../../../components/ui/AlertBanner'
@@ -18,6 +18,8 @@ import ResumenTab from '../components/reportes/ResumenTab'
 import CarteraTab from '../components/reportes/CarteraTab'
 import CaptacionesTab from '../components/reportes/CaptacionesTab'
 import IndicadoresTab from '../components/reportes/IndicadoresTab'
+import ComandoVozReportes from '../components/reportes/ComandoVozReportes'
+import { filtrosDesdeComando } from '../components/reportes/comandoVozUtils'
 
 const TABS = [
   { id: 'resumen', label: 'Resumen Ejecutivo', icon: 'dashboard' },
@@ -53,6 +55,17 @@ export default function ReportesPage() {
     setExportError(null)
     setRefreshTrigger((k) => k + 1)
   }
+
+  // A voice-requested report that matches a tab is also shown on the page.
+  const handleVoiceReport = useCallback((command) => {
+    const filtros = filtrosDesdeComando(command)
+    if (!filtros) return
+    setActiveTab(filtros.tab)
+    if (filtros.fechaCorte) setFechaCorte(filtros.fechaCorte)
+    if (filtros.monedaId) setMonedaId(Number(filtros.monedaId))
+    setExportError(null)
+    setRefreshTrigger((k) => k + 1)
+  }, [])
 
   function handlePrint() {
     globalThis.print()
@@ -109,7 +122,9 @@ export default function ReportesPage() {
         title="Reportes Financieros y Gerenciales"
         subtitle="Métricas consolidadas de cartera, captaciones e indicadores directivos (CU-W33)."
         action={
-          <div className="flex items-center gap-2 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <ComandoVozReportes onReport={handleVoiceReport} />
+
             <Button
               type="button"
               variant="secondary"
