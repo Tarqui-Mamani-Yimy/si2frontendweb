@@ -249,7 +249,7 @@ export default function AlertasPage() {
       <PageHeader
         title="Monitoreo Predictivo de Mora y Alertas"
         subtitle="Detección temprana de mora, alertas por cuotas vencidas y modelo predictivo de riesgo (CU-W28)"
-        actions={
+        action={
           <div className="flex items-center gap-2">
             <Button
               type="button"
