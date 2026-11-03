@@ -2,9 +2,11 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import castorAvatar from '../../assets/screen copy.png'
 import { descargarReporte, enviarMensaje, transcribirAudio } from '../../core/api/chatApi'
 import { elegirFormatoAudio, mensajeErrorMicrofono, mensajeErrorTranscripcion } from './chatVoiceUtils'
+import { FORMATO_REPORTE, descargasDeReporte } from './chatReporteUtils'
 
 const QUICK_PROMPTS = [
   'Genera el reporte de morosidad en PDF',
+  'Reporte de cartera en CSV',
   'Resumen de socios activos',
   'Estado de cierre de caja',
   '¿Cuál es la tasa de mora actual?',
@@ -15,7 +17,7 @@ const MAX_GRABACION_MS = 30000
 const MENSAJE_INICIAL = {
   id: 0,
   sender: 'castor',
-  text: '¡Hola! Soy Castor, tu copiloto financiero. Puedo darte información real de créditos, mora, socios, caja y precalificación, y generar reportes gerenciales y contables en PDF. ¿En qué te puedo asesorar hoy?',
+  text: '¡Hola! Soy Castor, tu copiloto financiero. Puedo darte información real de créditos, mora, socios, caja y precalificación, y generar reportes gerenciales y contables en PDF, CSV o HTML. ¿En qué te puedo asesorar hoy?',
   time: '',
 }
 
@@ -238,11 +240,12 @@ export default function CastorChatbot() {
     })
   }
 
-  async function handleDescargarReporte(message) {
-    if (!message.reporte || downloadingId) return
-    setDownloadingId(message.id)
+  async function handleDescargarReporte(message, descarga) {
+    if (!descarga || downloadingId) return
+    const formato = FORMATO_REPORTE[descarga.formato]?.label ?? 'reporte'
+    setDownloadingId(`${message.id}:${descarga.formato}`)
     try {
-      await descargarReporte(message.reporte)
+      await descargarReporte(descarga)
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -250,8 +253,8 @@ export default function CastorChatbot() {
           id: nextId.current++,
           sender: 'castor',
           text: error?.message
-            ? `No pude descargar el PDF: ${error.message}. Inténtalo desde el módulo de reportes.`
-            : 'No pude descargar el PDF en este momento. Inténtalo desde el módulo de reportes.',
+            ? `No pude descargar el ${formato}: ${error.message}. Inténtalo desde el módulo de reportes.`
+            : `No pude descargar el ${formato} en este momento. Inténtalo desde el módulo de reportes.`,
           time: horaActual(),
           error: true,
         },
@@ -343,17 +346,32 @@ export default function CastorChatbot() {
                 >
                   <p>{m.text}</p>
                   {m.reporte && (
-                    <button
-                      type="button"
-                      onClick={() => handleDescargarReporte(m)}
-                      disabled={downloadingId === m.id}
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#006c49] px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-[#0c4f30] disabled:opacity-60 disabled:cursor-not-allowed transition"
-                    >
-                      <span className="material-symbols-outlined text-[15px]">
-                        {downloadingId === m.id ? 'hourglass_top' : 'picture_as_pdf'}
-                      </span>
-                      {downloadingId === m.id ? 'Generando…' : 'Descargar PDF'}
-                    </button>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {descargasDeReporte(m.reporte).map((descarga, index) => {
+                        const meta = FORMATO_REPORTE[descarga.formato]
+                        const key = `${m.id}:${descarga.formato}`
+                        // The first link is the format the user asked for.
+                        const pedido = index === 0
+                        return (
+                          <button
+                            key={descarga.formato}
+                            type="button"
+                            onClick={() => handleDescargarReporte(m, descarga)}
+                            disabled={Boolean(downloadingId)}
+                            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${
+                              pedido
+                                ? 'bg-[#006c49] text-white hover:bg-[#0c4f30]'
+                                : 'border border-[#006c49]/30 bg-white text-[#006c49] hover:bg-emerald-50'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-[15px]">
+                              {downloadingId === key ? 'hourglass_top' : meta.icon}
+                            </span>
+                            {downloadingId === key ? 'Generando…' : pedido ? `Descargar ${meta.label}` : meta.label}
+                          </button>
+                        )
+                      })}
+                    </div>
                   )}
                   <span
                     className={`block mt-1 text-[10px] text-right ${

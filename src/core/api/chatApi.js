@@ -47,8 +47,8 @@ async function detalleDeError(response) {
 }
 
 /**
- * Descarga el PDF asociado a un reporte ofrecido por el chatbot.
- * @param {{url: string, filename?: string, nombre?: string}} reporte
+ * Descarga un reporte ofrecido por el chatbot (PDF, CSV o HTML según su URL).
+ * @param {{url: string, filename?: string}} reporte
  * @returns {Promise<string>} nombre del archivo descargado
  */
 export async function descargarReporte(reporte) {
