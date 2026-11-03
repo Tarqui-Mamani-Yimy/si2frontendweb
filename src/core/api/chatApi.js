@@ -15,6 +15,16 @@ export async function enviarMensaje(mensaje, historial = []) {
   return data
 }
 
+export async function transcribirAudio(audio) {
+  const formData = new FormData()
+  formData.append('audio', audio, 'consulta')
+  const { data } = await client.post('/chatbot/transcribir', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: REQUEST_TIMEOUT_MS,
+  })
+  return data.texto
+}
+
 function filenameDesdeDisposicion(disposition) {
   if (!disposition) return null
   const utf8 = disposition.match(/filename\*=UTF-8''([^;]+)/i)

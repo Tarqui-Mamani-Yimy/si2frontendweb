@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import castorAvatar from '../../assets/screen copy.png'
-import { descargarReporte, enviarMensaje } from '../../core/api/chatApi'
+import { descargarReporte, enviarMensaje, transcribirAudio } from '../../core/api/chatApi'
+import { elegirFormatoAudio, mensajeErrorMicrofono, mensajeErrorTranscripcion } from './chatVoiceUtils'
 
 const QUICK_PROMPTS = [
   'Genera el reporte de morosidad en PDF',
@@ -8,6 +9,8 @@ const QUICK_PROMPTS = [
   'Estado de cierre de caja',
   '¿Cuál es la tasa de mora actual?',
 ]
+
+const MAX_GRABACION_MS = 30000
 
 const MENSAJE_INICIAL = {
   id: 0,
@@ -28,28 +31,41 @@ export default function CastorChatbot() {
   const [suggestions, setSuggestions] = useState(QUICK_PROMPTS)
   const [downloadingId, setDownloadingId] = useState(null)
   const [listening, setListening] = useState(false)
+  const [transcribing, setTranscribing] = useState(false)
   const [speechEnabled, setSpeechEnabled] = useState(false)
   const [voiceStatus, setVoiceStatus] = useState('')
   const messagesEndRef = useRef(null)
-  const recognitionRef = useRef(null)
-  const voiceSubmittedRef = useRef(false)
+  const recorderRef = useRef(null)
+  const recordingTimeoutRef = useRef(null)
+  const voiceSessionRef = useRef(0)
+  const requestingMicRef = useRef(false)
   const handleSendRef = useRef(null)
   const nextId = useRef(1)
-  const SpeechRecognition =
-    typeof window !== 'undefined'
-      ? window.SpeechRecognition ?? window.webkitSpeechRecognition
-      : null
+  const voiceInputSupported =
+    typeof window !== 'undefined' &&
+    'MediaRecorder' in window &&
+    Boolean(window.navigator.mediaDevices?.getUserMedia)
   const speechSynthesisSupported =
     typeof window !== 'undefined' &&
     'speechSynthesis' in window &&
     'SpeechSynthesisUtterance' in window
 
+  // Invalidates the current dictation so nothing recorded so far gets sent.
+  const cancelVoiceInput = useCallback(() => {
+    voiceSessionRef.current += 1
+    clearTimeout(recordingTimeoutRef.current)
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop()
+    recorderRef.current = null
+    setListening(false)
+    setTranscribing(false)
+  }, [])
+
   useEffect(() => () => {
-    recognitionRef.current?.stop()
+    cancelVoiceInput()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
-  }, [])
+  }, [cancelVoiceInput])
 
   useEffect(() => {
     if (open) {
@@ -115,69 +131,91 @@ export default function CastorChatbot() {
   }, [handleSend])
 
   function closeChat() {
-    recognitionRef.current?.stop()
-    setListening(false)
+    cancelVoiceInput()
+    setVoiceStatus('')
     if (speechSynthesisSupported) window.speechSynthesis.cancel()
     setOpen(false)
   }
 
-  function toggleVoiceInput() {
-    if (listening) {
-      recognitionRef.current?.stop()
-      setListening(false)
-      setVoiceStatus('Dictado detenido.')
+  async function sendRecording(chunks, type, session) {
+    const audio = new Blob(chunks, { type })
+    if (!audio.size) {
+      setVoiceStatus('No se detectó voz. Intenta hablar de nuevo.')
       return
     }
 
-    if (!SpeechRecognition) {
+    setTranscribing(true)
+    setVoiceStatus('Transcribiendo tu consulta…')
+    try {
+      const texto = await transcribirAudio(audio)
+      if (session !== voiceSessionRef.current) return
+      if (!texto) {
+        setVoiceStatus('No se detectó voz. Intenta hablar de nuevo.')
+        return
+      }
+      setInputValue(texto)
+      setVoiceStatus('Consulta reconocida; enviándola a Castor…')
+      handleSendRef.current?.(texto)
+    } catch (error) {
+      if (session === voiceSessionRef.current) setVoiceStatus(mensajeErrorTranscripcion(error))
+    } finally {
+      if (session === voiceSessionRef.current) setTranscribing(false)
+    }
+  }
+
+  async function toggleVoiceInput() {
+    if (listening) {
+      clearTimeout(recordingTimeoutRef.current)
+      recorderRef.current?.stop()
+      return
+    }
+    if (requestingMicRef.current) return
+
+    if (!voiceInputSupported) {
       setVoiceStatus('El dictado por voz no está disponible en este navegador.')
       return
     }
 
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'es-BO'
-    recognition.continuous = false
-    recognition.interimResults = true
-    voiceSubmittedRef.current = false
-    recognitionRef.current = recognition
+    const session = ++voiceSessionRef.current
+    requestingMicRef.current = true
+    let stream
+    try {
+      stream = await window.navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch (error) {
+      if (session === voiceSessionRef.current) setVoiceStatus(mensajeErrorMicrofono(error))
+      return
+    } finally {
+      requestingMicRef.current = false
+    }
 
-    recognition.onstart = () => {
-      setListening(true)
-      setVoiceStatus('Escuchando…')
+    const stopStream = () => stream.getTracks().forEach((track) => track.stop())
+    if (session !== voiceSessionRef.current) {
+      stopStream()
+      return
     }
-    recognition.onresult = (event) => {
-      let transcript = ''
-      let interim = ''
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const phrase = event.results[index][0].transcript
-        if (event.results[index].isFinal) transcript += phrase
-        else interim += phrase
-      }
-
-      if (interim) setVoiceStatus(`Escuchando: ${interim}`)
-      const finalTranscript = transcript.trim()
-      if (finalTranscript && !voiceSubmittedRef.current) {
-        voiceSubmittedRef.current = true
-        setInputValue(finalTranscript)
-        setVoiceStatus('Consulta reconocida; enviándola a Castor…')
-        handleSendRef.current?.(finalTranscript)
-      }
-    }
-    recognition.onerror = (event) => {
-      const errorMessages = {
-        'not-allowed': 'Permite el acceso al micrófono en el navegador para usar el dictado.',
-        'service-not-allowed': 'El navegador no permite usar el servicio de reconocimiento de voz.',
-        'no-speech': 'No se detectó voz. Intenta hablar de nuevo.',
-        'audio-capture': 'No se encontró un micrófono disponible.',
-      }
-      setListening(false)
-      setVoiceStatus(errorMessages[event.error] ?? 'Ocurrió un error al reconocer la voz.')
-    }
-    recognition.onend = () => setListening(false)
 
     try {
-      recognition.start()
+      const formato = elegirFormatoAudio((tipo) => window.MediaRecorder.isTypeSupported(tipo))
+      const recorder = new window.MediaRecorder(stream, formato ? { mimeType: formato } : undefined)
+      const chunks = []
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) chunks.push(event.data)
+      }
+      recorder.onstop = () => {
+        stopStream()
+        if (session !== voiceSessionRef.current) return
+        recorderRef.current = null
+        setListening(false)
+        sendRecording(chunks, recorder.mimeType || formato, session)
+      }
+      recorderRef.current = recorder
+      recorder.start()
+      setListening(true)
+      setVoiceStatus('Escuchando… Pulsa el micrófono para terminar.')
+      recordingTimeoutRef.current = setTimeout(() => recorder.stop(), MAX_GRABACION_MS)
     } catch {
+      stopStream()
+      recorderRef.current = null
       setListening(false)
       setVoiceStatus('No se pudo iniciar el micrófono. Intenta de nuevo.')
     }
@@ -376,11 +414,11 @@ export default function CastorChatbot() {
             <button
               type="button"
               onClick={toggleVoiceInput}
-              disabled={sending}
+              disabled={sending || transcribing}
               aria-label={listening ? 'Detener dictado por voz' : 'Dictar consulta por voz'}
               aria-pressed={listening}
               title={
-                SpeechRecognition
+                voiceInputSupported
                   ? 'Dictar consulta en español'
                   : 'Dictado por voz no disponible en este navegador'
               }
@@ -391,7 +429,7 @@ export default function CastorChatbot() {
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">
-                {listening ? 'mic_off' : 'mic'}
+                {transcribing ? 'hourglass_top' : listening ? 'mic_off' : 'mic'}
               </span>
             </button>
             <button
