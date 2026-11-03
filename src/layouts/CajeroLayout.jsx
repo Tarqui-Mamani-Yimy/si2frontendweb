@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: 'Créditos', path: '/cajero/cartera' },
   { label: 'Plazo Fijo', path: '/cajero/plazo-fijo' },
   { label: 'Socios', path: '/cajero/socios' },
+  { label: 'Notificaciones', path: '/cajero/notificaciones' },
 ]
 
 export default function CajeroLayout() {

@@ -1,10 +1,15 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
+const SIZES = {
+  md: 'max-w-lg',
+  lg: 'max-w-4xl',
+}
+
 /**
  * Modal — ventana modal institucional NexaCoop Precision.
  */
-export default function Modal({ open, onClose, title, subtitle, children, footer }) {
+export default function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }) {
   useEffect(() => {
     if (!open) return
     function handleKeyDown(event) {
@@ -23,7 +28,7 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
       role="presentation"
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white border border-[#e2e8f0] shadow-2xl"
+        className={`flex max-h-[85vh] w-full ${SIZES[size] ?? SIZES.md} flex-col overflow-hidden rounded-2xl bg-white border border-[#e2e8f0] shadow-2xl`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

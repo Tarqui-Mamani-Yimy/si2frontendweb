@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { selectUser, useAuthStore } from '../../core/store/authStore'
 import CastorChatbot from '../../components/ui/CastorChatbot'
+import NotificationBell from '../../modules/notificaciones/components/NotificationBell'
 
 function formatRoleName(roleName) {
   if (!roleName) return ''
@@ -10,6 +11,7 @@ function formatRoleName(roleName) {
 function getNavIcon(label = '', path = '') {
   const l = (label + ' ' + path).toLowerCase()
   if (l.includes('dashboard')) return 'dashboard'
+  if (l.includes('notificaci')) return 'notifications'
   if (l.includes('registrar') || l.includes('nuevo')) return 'person_add'
   if (l.includes('usuario')) return 'manage_accounts'
   if (l.includes('rol')) return 'admin_panel_settings'
@@ -172,14 +174,7 @@ export default function AppShell({ navItems = [] }) {
           {/* Lado derecho: Acciones & Usuario */}
           <div className="flex items-center gap-4">
             {/* Notificaciones */}
-            <button
-              type="button"
-              aria-label="Notificaciones"
-              className="relative p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#dc2626]" />
-            </button>
+            <NotificationBell roleName={user?.rol?.nombre} />
 
             {/* Info usuario */}
             {user && (
