@@ -13,6 +13,9 @@ function resolveErrorMessage(error) {
     if (error.response.status === 401) {
       return error.response.data?.detail ?? 'Correo o contraseña incorrectos'
     }
+    if (error.response.status === 403) {
+      return error.response.data?.detail ?? 'Error del servidor. Intente nuevamente en unos minutos.'
+    }
     return 'Error del servidor. Intente nuevamente en unos minutos.'
   }
   return 'No se pudo conectar con el servidor. Verifique su conexión e intente de nuevo.'
