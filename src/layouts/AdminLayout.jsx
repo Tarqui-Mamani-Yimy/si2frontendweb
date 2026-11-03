@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Solicitudes', path: '/admin/solicitudes' },
   { label: 'Cartera', path: '/admin/cartera' },
   { label: 'Alertas', path: '/admin/alertas' },
+  { label: 'Notificaciones', path: '/admin/notificaciones' },
   { label: 'Re-créditos', path: '/admin/recreditos' },
   { label: 'Comité', path: '/admin/comite' },
   { label: 'Ahorros y aportes', path: '/admin/caja' },

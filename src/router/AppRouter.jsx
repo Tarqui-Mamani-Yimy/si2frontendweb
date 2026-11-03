@@ -66,6 +66,8 @@ import AlertasPage from '../modules/oficial/pages/AlertasPage'
 import ContadorCumplimientoPage from '../modules/contador/pages/CumplimientoPage'
 import ContadorDashboardPage from '../modules/contador/pages/DashboardPage'
 import ContadorReportesPage from '../modules/contador/pages/ReportesPage'
+import GestionarNotificacionesPage from '../modules/notificaciones/pages/GestionarNotificacionesPage'
+import MisNotificacionesPage from '../modules/notificaciones/pages/MisNotificacionesPage'
 import ContadorInformesAsfiPage from '../modules/contador/pages/InformesAsfiPage'
 import PlanCuentasPage from '../modules/contador/pages/PlanCuentasPage'
 import ComprobantesPage from '../modules/contador/pages/ComprobantesPage'
@@ -146,6 +148,7 @@ export default function AppRouter() {
             <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
+            <Route path="notificaciones" element={<GestionarNotificacionesPage />} />
             <Route path="informes-asfi" element={<AdminInformesAsfiPage />} />
             <Route path="configuracion" element={<AdminConfiguracionPage />} />
           </Route>
@@ -160,6 +163,7 @@ export default function AppRouter() {
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
+            <Route path="notificaciones" element={<GestionarNotificacionesPage />} />
           </Route>
         </Route>
 
@@ -218,6 +222,7 @@ export default function AppRouter() {
             <Route path="dashboard" element={<SocioDashboardPage />} />
             <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
             <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
+            <Route path="notificaciones" element={<MisNotificacionesPage />} />
           </Route>
         </Route>
 
