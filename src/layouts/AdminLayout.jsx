@@ -9,8 +9,8 @@ const NAV_ITEMS = [
   { label: 'Solicitudes', path: '/admin/solicitudes' },
   { label: 'Cartera', path: '/admin/cartera' },
   { label: 'Alertas', path: '/admin/alertas' },
-  { label: 'Notificaciones', path: '/admin/notificaciones' },
-  { label: 'Re-créditos', path: '/admin/recreditos' },
+  { label: 'Notificaciones', path: '/admin/notificaciones', modulo: 'notificaciones_socios' },
+  { label: 'Re-créditos', path: '/admin/recreditos', modulo: 'recredito_ia' },
   { label: 'Comité', path: '/admin/comite' },
   { label: 'Ahorros y aportes', path: '/admin/caja' },
   { label: 'Créditos', path: '/admin/creditos' },
@@ -25,8 +25,8 @@ const NAV_ITEMS = [
   { label: 'Tipos de Cambio', path: '/admin/tipos-cambio' },
   { label: 'Parámetros Contables', path: '/admin/parametros-contables' },
   { label: 'Reportes', path: '/admin/reportes' },
-  { label: 'Informes ASFI', path: '/admin/informes-asfi' },
-  { label: 'Bitácora', path: '/admin/bitacora' },
+  { label: 'Informes ASFI', path: '/admin/informes-asfi', modulo: 'informes_asfi' },
+  { label: 'Bitácora', path: '/admin/bitacora', modulo: 'respaldos_bitacora' },
   { label: 'Configuración', path: '/admin/configuracion' },
 ]
 

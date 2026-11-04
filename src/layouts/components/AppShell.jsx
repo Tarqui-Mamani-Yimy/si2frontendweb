@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { selectUser, useAuthStore } from '../../core/store/authStore'
+import { selectModulosInfo, selectUser, useAuthStore } from '../../core/store/authStore'
+import { isModuloPermitido } from '../../core/utils/planModulos'
 import CastorChatbot from '../../components/ui/CastorChatbot'
 import NotificationBell from '../../modules/notificaciones/components/NotificationBell'
 
@@ -57,8 +59,14 @@ function NexaCoopMark() {
 
 export default function AppShell({ navItems = [] }) {
   const navigate = useNavigate()
-  const user     = useAuthStore(selectUser)
-  const logout   = useAuthStore((state) => state.logout)
+  const user = useAuthStore(selectUser)
+  const modulosInfo = useAuthStore(selectModulosInfo)
+  const logout = useAuthStore((state) => state.logout)
+
+  const visibleNavItems = useMemo(
+    () => navItems.filter((item) => !item.modulo || isModuloPermitido(modulosInfo, item.modulo)),
+    [navItems, modulosInfo],
+  )
 
   async function handleLogout() {
     try {
@@ -84,7 +92,7 @@ export default function AppShell({ navItems = [] }) {
           <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[#80bea6]">
             Módulos del Sistema
           </div>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const iconName = getNavIcon(item.label, item.path)
             return (
               <NavLink
@@ -174,7 +182,9 @@ export default function AppShell({ navItems = [] }) {
           {/* Lado derecho: Acciones & Usuario */}
           <div className="flex items-center gap-4">
             {/* Notificaciones */}
-            <NotificationBell roleName={user?.rol?.nombre} />
+            {isModuloPermitido(modulosInfo, 'notificaciones_socios') && (
+              <NotificationBell roleName={user?.rol?.nombre} />
+            )}
 
             {/* Info usuario */}
             {user && (
@@ -214,9 +224,11 @@ export default function AppShell({ navItems = [] }) {
       </div>
 
       {/* ── Asistente Chatbot Flotante Castor IA ── */}
-      <div className="print:hidden">
-        <CastorChatbot />
-      </div>
+      {isModuloPermitido(modulosInfo, 'chatbot_ia') && (
+        <div className="print:hidden">
+          <CastorChatbot />
+        </div>
+      )}
     </div>
   )
 }

@@ -9,7 +9,8 @@ import ActaComiteModal from '../components/comite/ActaComiteModal'
 import DetalleSolicitudModal from '../components/solicitudes/DetalleSolicitudModal'
 import ExplicacionDictamenModal from '../components/recreditos/ExplicacionDictamenModal'
 import { listarComite, votarComite } from '../../../core/api/creditosApi'
-import { useAuthStore, selectUser } from '../../../core/store/authStore'
+import { useAuthStore, selectUser, selectModulosInfo } from '../../../core/store/authStore'
+import { isModuloPermitido } from '../../../core/utils/planModulos'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = Number(value ?? 0)
@@ -74,6 +75,7 @@ function getRiesgoBadgeVariant(nivel) {
  */
 export default function ComitePage() {
   const user = useAuthStore(selectUser)
+  const modulosInfo = useAuthStore(selectModulosInfo)
   const roleName = user?.rol?.nombre || ''
 
   const [items, setItems] = useState([])
@@ -463,7 +465,7 @@ export default function ComitePage() {
                           </span>
                         </div>
 
-                        {evalCrediticia?.id && (
+                        {evalCrediticia?.id && isModuloPermitido(modulosInfo, 'scoring_crediticio') && (
                           <Button
                             type="button"
                             variant="secondary"

@@ -14,6 +14,11 @@ export async function fetchMe() {
   return data
 }
 
+export async function fetchMisModulos() {
+  const { data } = await client.get('/suscripciones/mis-modulos', { timeout: 5000 })
+  return data
+}
+
 export async function logout() {
   const { data } = await client.post('/auth/logout', {}, { skipUnauthorizedHandling: true })
   return data

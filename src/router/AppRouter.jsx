@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import {
+  FeatureRoute,
   GuestRoute,
   ProtectedRoute,
   RoleRoute,
@@ -125,7 +126,14 @@ export default function AppRouter() {
           <Route element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="bitacora" element={<AdminBitacoraPage />} />
+            <Route
+              path="bitacora"
+              element={
+                <FeatureRoute modulo="respaldos_bitacora">
+                  <AdminBitacoraPage />
+                </FeatureRoute>
+              }
+            />
             <Route path="usuarios/nuevo" element={<RegistrarUsuarioPage />} />
             <Route path="usuarios" element={<UsuariosPage />} />
             <Route path="roles" element={<RolesPage />} />
@@ -134,7 +142,14 @@ export default function AppRouter() {
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="alertas" element={<AlertasPage />} />
-            <Route path="recreditos" element={<RecreditosPage />} />
+            <Route
+              path="recreditos"
+              element={
+                <FeatureRoute modulo="recredito_ia">
+                  <RecreditosPage />
+                </FeatureRoute>
+              }
+            />
             <Route path="comite" element={<ComitePage />} />
             <Route path="creditos" element={<AdminCreditosPage />} />
             <Route path="caja" element={<AdminCajaPage />} />
@@ -148,8 +163,22 @@ export default function AppRouter() {
             <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
-            <Route path="notificaciones" element={<GestionarNotificacionesPage />} />
-            <Route path="informes-asfi" element={<AdminInformesAsfiPage />} />
+            <Route
+              path="notificaciones"
+              element={
+                <FeatureRoute modulo="notificaciones_socios">
+                  <GestionarNotificacionesPage />
+                </FeatureRoute>
+              }
+            />
+            <Route
+              path="informes-asfi"
+              element={
+                <FeatureRoute modulo="informes_asfi">
+                  <AdminInformesAsfiPage />
+                </FeatureRoute>
+              }
+            />
             <Route path="configuracion" element={<AdminConfiguracionPage />} />
           </Route>
         </Route>
@@ -163,7 +192,14 @@ export default function AppRouter() {
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
-            <Route path="notificaciones" element={<GestionarNotificacionesPage />} />
+            <Route
+              path="notificaciones"
+              element={
+                <FeatureRoute modulo="notificaciones_socios">
+                  <GestionarNotificacionesPage />
+                </FeatureRoute>
+              }
+            />
           </Route>
         </Route>
 
@@ -175,7 +211,14 @@ export default function AppRouter() {
             <Route path="solicitudes" element={<OficialSolicitudesPage />} />
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="alertas" element={<AlertasPage />} />
-            <Route path="recreditos" element={<RecreditosPage />} />
+            <Route
+              path="recreditos"
+              element={
+                <FeatureRoute modulo="recredito_ia">
+                  <RecreditosPage />
+                </FeatureRoute>
+              }
+            />
             <Route path="comite" element={<ComitePage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
@@ -199,7 +242,14 @@ export default function AppRouter() {
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
-            <Route path="informes-asfi" element={<ContadorInformesAsfiPage />} />
+            <Route
+              path="informes-asfi"
+              element={
+                <FeatureRoute modulo="informes_asfi">
+                  <ContadorInformesAsfiPage />
+                </FeatureRoute>
+              }
+            />
             <Route path="cumplimiento" element={<ContadorCumplimientoPage />} />
           </Route>
         </Route>
@@ -217,12 +267,21 @@ export default function AppRouter() {
 
         {/* SOCIO / CLIENTE */}
         <Route path="/socio" element={<RoleRoute allow="socio" />}>
-          <Route element={<SocioLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SocioDashboardPage />} />
-            <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
-            <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
-            <Route path="notificaciones" element={<MisNotificacionesPage />} />
+          <Route element={<FeatureRoute modulo="banca_movil" />}>
+            <Route element={<SocioLayout />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SocioDashboardPage />} />
+              <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
+              <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
+              <Route
+                path="notificaciones"
+                element={
+                  <FeatureRoute modulo="notificaciones_socios">
+                    <MisNotificacionesPage />
+                  </FeatureRoute>
+                }
+              />
+            </Route>
           </Route>
         </Route>
 

@@ -13,6 +13,8 @@ import {
   exportIndicadoresReport,
 } from '../../../core/api/reportesApi'
 import { getApiErrorMessage } from '../../../core/api/errors'
+import { selectModulosInfo, useAuthStore } from '../../../core/store/authStore'
+import { isModuloPermitido } from '../../../core/utils/planModulos'
 
 import ResumenTab from '../components/reportes/ResumenTab'
 import CarteraTab from '../components/reportes/CarteraTab'
@@ -29,6 +31,7 @@ const TABS = [
 ]
 
 export default function ReportesPage() {
+  const modulosInfo = useAuthStore(selectModulosInfo)
   const today = getTodayIso()
   const [activeTab, setActiveTab] = useState('resumen')
   const [fechaCorte, setFechaCorte] = useState(today)
@@ -123,7 +126,9 @@ export default function ReportesPage() {
         subtitle="Métricas consolidadas de cartera, captaciones e indicadores directivos (CU-W33)."
         action={
           <div className="flex flex-wrap items-center gap-2 print:hidden">
-            <ComandoVozReportes onReport={handleVoiceReport} />
+            {isModuloPermitido(modulosInfo, 'chatbot_ia') && (
+              <ComandoVozReportes onReport={handleVoiceReport} />
+            )}
 
             <Button
               type="button"

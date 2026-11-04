@@ -7,6 +7,7 @@ const initialState = {
   token: null,
   expiresAt: null,
   user: null,
+  modulosInfo: null,
   status: 'idle',
   error: null,
 }
@@ -23,7 +24,7 @@ export const useAuthStore = create(
       },
 
       async login(correo, contrasena) {
-        set({ status: 'loading', error: null })
+        set({ status: 'loading', error: null, modulosInfo: null })
         try {
           const data = await authApi.login({ correo, contrasena })
           set({
@@ -31,8 +32,10 @@ export const useAuthStore = create(
             expiresAt: Date.now() + data.expires_in * 1000,
             status: 'authenticated',
             error: null,
+            modulosInfo: null,
           })
           await get().fetchCurrentUser()
+          await get().fetchMisModulos(true)
         } catch (error) {
           set({ ...initialState, error })
           throw error
@@ -43,9 +46,28 @@ export const useAuthStore = create(
         try {
           const user = await authApi.fetchMe()
           set({ user, status: 'authenticated', error: null })
+          if (!get().modulosInfo) {
+            await get().fetchMisModulos(true)
+          }
         } catch (error) {
           set({ ...initialState, error })
           throw error
+        }
+      },
+
+      async fetchMisModulos(force = false) {
+        if (!force && get().modulosInfo && !get().modulosInfo.fetchFailed) {
+          return get().modulosInfo
+        }
+        try {
+          const modulosInfo = await authApi.fetchMisModulos()
+          set({ modulosInfo: modulosInfo ?? { plan: null, modulos: [], sin_restriccion: false } })
+          return get().modulosInfo
+        } catch {
+          // S7: Si mis-modulos falla, las apps no ocultan nada y el backend sigue bloqueando
+          const fallback = { plan: null, modulos: [], sin_restriccion: false, fetchFailed: true }
+          set({ modulosInfo: fallback })
+          return fallback
         }
       },
 
@@ -67,6 +89,7 @@ export const useAuthStore = create(
         token: state.token,
         expiresAt: state.expiresAt,
         user: state.user,
+        modulosInfo: state.modulosInfo,
       }),
     },
   ),
@@ -86,6 +109,8 @@ export const selectIsAuthenticated = (state) =>
   Boolean(state.token && Date.now() < state.expiresAt && state.user)
 
 export const selectUser = (state) => state.user
+
+export const selectModulosInfo = (state) => state.modulosInfo
 
 export const selectStatus = (state) => state.status
 

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { selectModulosInfo, useAuthStore } from '../../../../core/store/authStore'
+import { isModuloPermitido } from '../../../../core/utils/planModulos'
 import Button from '../../../../components/ui/Button'
 import Badge from '../../../../components/ui/Badge'
 import AlertBanner from '../../../../components/ui/AlertBanner'
@@ -66,6 +68,7 @@ export default function EvaluacionCrediticiaView({
   canEval = true,
   onPrintScoring,
 }) {
+  const modulosInfo = useAuthStore(selectModulosInfo)
   const [modeloMoraModalOpen, setModeloMoraModalOpen] = useState(false)
   const [explicacionModalOpen, setExplicacionModalOpen] = useState(false)
 
@@ -120,7 +123,7 @@ export default function EvaluacionCrediticiaView({
           )}
 
           {/* Botón Explicación en Lenguaje Natural (CU-W23 p2) */}
-          {evaluacion && (
+          {evaluacion && isModuloPermitido(modulosInfo, 'scoring_crediticio') && (
             <Button
               type="button"
               variant="secondary"

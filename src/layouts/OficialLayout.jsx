@@ -5,7 +5,7 @@ const NAV_ITEMS = [
   { label: 'Solicitudes', path: '/oficial/solicitudes' },
   { label: 'Cartera', path: '/oficial/cartera' },
   { label: 'Alertas', path: '/oficial/alertas' },
-  { label: 'Re-créditos', path: '/oficial/recreditos' },
+  { label: 'Re-créditos', path: '/oficial/recreditos', modulo: 'recredito_ia' },
   { label: 'Comité', path: '/oficial/comite' },
   { label: 'Plazo Fijo', path: '/oficial/plazo-fijo' },
   { label: 'Créditos', path: '/oficial/creditos' },
