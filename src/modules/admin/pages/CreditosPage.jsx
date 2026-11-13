@@ -380,6 +380,9 @@ export default function AdminCreditosPage() {
                       <span className="text-[11px] text-slate-600 block mt-0.5">
                         {p.tipo_amortizacion === 'FRANCES' ? 'Francés (Cuota fija)' : 'Alemán (Capital fijo)'}
                       </span>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        Seguro: {Number(p.tasa_seguro_desgravamen ?? 0).toFixed(2)}% mensual
+                      </span>
                     </td>
 
                     {/* Garantía y Riesgo */}

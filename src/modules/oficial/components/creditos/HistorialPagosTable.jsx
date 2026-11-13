@@ -121,6 +121,9 @@ export default function HistorialPagosTable({ creditoId, monedaSimbolo = 'Bs.', 
               Interés
             </th>
             <th className="px-3.5 py-2.5 font-semibold text-slate-600 uppercase text-[10px] text-right">
+              Seguro
+            </th>
+            <th className="px-3.5 py-2.5 font-semibold text-slate-600 uppercase text-[10px] text-right">
               Mora
             </th>
             <th className="px-3.5 py-2.5 font-semibold text-slate-600 uppercase text-[10px] text-right">
@@ -160,6 +163,9 @@ export default function HistorialPagosTable({ creditoId, monedaSimbolo = 'Bs.', 
                 </td>
                 <td className="px-3.5 py-2.5 text-right font-mono text-slate-800">
                   {formatMoney(p.interes, sim)}
+                </td>
+                <td className="px-3.5 py-2.5 text-right font-mono text-slate-800">
+                  {formatMoney(p.seguro, sim)}
                 </td>
                 <td className="px-3.5 py-2.5 text-right font-mono">
                   {Number(p.mora ?? 0) > 0 ? (

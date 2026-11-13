@@ -240,6 +240,9 @@ export default function OficialCreditosPage() {
                         {Number(p.tasa_interes_anual).toFixed(2)}%
                       </span>
                       <span className="text-[10px] text-emerald-700 font-semibold ml-1">TNA</span>
+                      <span className="text-[10px] text-slate-600 block mt-0.5">
+                        Seguro: {Number(p.tasa_seguro_desgravamen ?? 0).toFixed(2)}% mensual
+                      </span>
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
@@ -366,6 +369,9 @@ export default function OficialCreditosPage() {
                       </span>
                       <span className="text-[10px] text-slate-500 block">
                         {p.tipo_amortizacion === 'FRANCES' ? 'Francés (Cuota fija)' : 'Alemán (Capital fijo)'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        Seguro: {Number(p.tasa_seguro_desgravamen ?? 0).toFixed(2)}% mensual
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-center">

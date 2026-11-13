@@ -195,6 +195,13 @@ export default function ComprobantePagoModal({ open, onClose, pago }) {
             </div>
 
             <div className="flex justify-between items-center py-1 border-b border-slate-100">
+              <span className="text-slate-600">Seguro de Desgravamen:</span>
+              <span className="font-mono font-bold text-slate-900">
+                {formatMoney(pago.seguro, sim)}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-1 border-b border-slate-100">
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-600">Interés Penal / Mora:</span>
                 {pago.dias_atraso > 0 && (

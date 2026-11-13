@@ -36,6 +36,7 @@ export default function ProductoCreditoModal({
     plazo_min_meses: producto?.plazo_min_meses != null ? String(producto.plazo_min_meses) : '',
     plazo_max_meses: producto?.plazo_max_meses != null ? String(producto.plazo_max_meses) : '',
     tasa_interes_anual: producto?.tasa_interes_anual != null ? String(producto.tasa_interes_anual) : '',
+    tasa_seguro_desgravamen: producto?.tasa_seguro_desgravamen != null ? String(producto.tasa_seguro_desgravamen) : '0.00',
     tipo_amortizacion: producto?.tipo_amortizacion ?? 'FRANCES',
     tipo_credito_asfi: producto?.tipo_credito_asfi ?? '',
     sector_productivo: Boolean(producto?.sector_productivo ?? false),
@@ -115,6 +116,11 @@ export default function ProductoCreditoModal({
       errs.tasa_interes_anual = 'Debe estar entre 0.00% y 100.00%.'
     }
 
+    const tasaSeguro = parseFloat(form.tasa_seguro_desgravamen)
+    if (isNaN(tasaSeguro) || tasaSeguro < 0 || tasaSeguro > 5) {
+      errs.tasa_seguro_desgravamen = 'Debe estar entre 0.00% y 5.00%.'
+    }
+
     if (!['FRANCES', 'ALEMAN'].includes(form.tipo_amortizacion)) {
       errs.tipo_amortizacion = 'Seleccione un sistema de amortización válido.'
     }
@@ -180,6 +186,7 @@ export default function ProductoCreditoModal({
         plazo_min_meses: parseInt(form.plazo_min_meses, 10),
         plazo_max_meses: parseInt(form.plazo_max_meses, 10),
         tasa_interes_anual: parseFloat(form.tasa_interes_anual).toFixed(2),
+        tasa_seguro_desgravamen: parseFloat(form.tasa_seguro_desgravamen || '0').toFixed(2),
         tipo_amortizacion: form.tipo_amortizacion,
         dias_gracia_mora: parseInt(form.dias_gracia_mora, 10),
         tasa_mora_anual: parseFloat(form.tasa_mora_anual).toFixed(2),
@@ -485,7 +492,7 @@ export default function ProductoCreditoModal({
             </h4>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <FormField
               id="tasa_interes_anual"
               label="Tasa Interés Nominal (TNA %)"
@@ -502,6 +509,26 @@ export default function ProductoCreditoModal({
                 onChange={(e) => handleChange('tasa_interes_anual', e.target.value)}
                 placeholder="18.00"
                 hasError={Boolean(errors.tasa_interes_anual)}
+                className="tabular-nums font-bold"
+              />
+            </FormField>
+
+            <FormField
+              id="tasa_seguro_desgravamen"
+              label="Tasa seguro desgravamen (% mensual)"
+              required
+              error={errors.tasa_seguro_desgravamen}
+            >
+              <Input
+                id="tasa_seguro_desgravamen"
+                type="number"
+                step="0.01"
+                min="0"
+                max="5"
+                value={form.tasa_seguro_desgravamen}
+                onChange={(e) => handleChange('tasa_seguro_desgravamen', e.target.value)}
+                placeholder="0.00"
+                hasError={Boolean(errors.tasa_seguro_desgravamen)}
                 className="tabular-nums font-bold"
               />
             </FormField>

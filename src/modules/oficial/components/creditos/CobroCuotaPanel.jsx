@@ -283,6 +283,13 @@ export default function CobroCuotaPanel({ credito, onPagoExitoso }) {
             </div>
 
             <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-600">Seguro de Desgravamen:</span>
+              <span className="font-mono font-bold text-slate-900">
+                {formatMoney(cuota?.seguro, sim)}
+              </span>
+            </div>
+
+            <div className="flex justify-between py-1 border-b border-slate-100">
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-600">Penalidad por Mora:</span>
                 {en_mora && (

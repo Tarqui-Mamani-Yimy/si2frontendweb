@@ -329,7 +329,7 @@ export default function CreditoDetalleModal({
                   </div>
 
                   {/* ── Métricas y Saldos del Crédito ── */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
                     <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
                       <span className="text-[10px] uppercase font-bold text-slate-400 block">Monto Aprobado</span>
                       <span className="font-display font-bold text-slate-900 text-base tabular-nums">
@@ -341,6 +341,13 @@ export default function CreditoDetalleModal({
                       <span className="text-[10px] uppercase font-bold text-slate-400 block">Saldo Pendiente</span>
                       <span className="font-display font-bold text-emerald-800 text-base tabular-nums">
                         {formatMoney(credito.saldo_pendiente, sim)}
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Seguro</span>
+                      <span className="font-display font-bold text-teal-800 text-base tabular-nums">
+                        {formatMoney(credito.total_seguro, sim)}
                       </span>
                     </div>
 
@@ -379,6 +386,7 @@ export default function CreditoDetalleModal({
                     <TablaAmortizacion
                       cuotas={credito.cronograma || []}
                       monedaSimbolo={sim}
+                      totalSeguro={credito.total_seguro}
                       showEstado={true}
                     />
                   </div>

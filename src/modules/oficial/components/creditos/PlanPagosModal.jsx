@@ -198,7 +198,7 @@ export default function PlanPagosModal({ open, onClose, solicitud }) {
 
         {/* ── Resumen de Totales Proyectados ── */}
         {plan && (
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
             <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Capital Total</span>
               <span className="font-display font-bold text-slate-900 text-sm tabular-nums">
@@ -210,6 +210,13 @@ export default function PlanPagosModal({ open, onClose, solicitud }) {
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Intereses</span>
               <span className="font-display font-bold text-emerald-800 text-sm tabular-nums">
                 {formatMoney(plan.total_interes, sim)}
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Seguro</span>
+              <span className="font-display font-bold text-teal-800 text-sm tabular-nums">
+                {formatMoney(plan.total_seguro, sim)}
               </span>
             </div>
 
@@ -236,6 +243,7 @@ export default function PlanPagosModal({ open, onClose, solicitud }) {
             monedaSimbolo={sim}
             totalCapital={plan?.total_capital}
             totalInteres={plan?.total_interes}
+            totalSeguro={plan?.total_seguro}
             totalPagar={plan?.total_pagar}
             showEstado={false}
           />

@@ -466,11 +466,17 @@ export default function SolicitudModal({
           </div>
 
           {productoSeleccionado && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-[11px]">
               <div>
                 <span className="text-slate-400 block font-semibold uppercase text-[10px]">TNA Nominal:</span>
                 <span className="font-bold text-[#064e3b] text-sm tabular-nums">
                   {Number(productoSeleccionado.tasa_interes_anual).toFixed(2)}%
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-semibold uppercase text-[10px]">Seguro Mensual:</span>
+                <span className="font-bold text-teal-800 text-sm tabular-nums">
+                  {Number(productoSeleccionado.tasa_seguro_desgravamen ?? 0).toFixed(2)}%
                 </span>
               </div>
               <div>
@@ -721,7 +727,7 @@ export default function SolicitudModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="p-2.5 rounded-lg bg-white border border-slate-200">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Cuota Estimada</span>
               <span className="font-display font-bold text-slate-900 text-base tabular-nums">
@@ -738,6 +744,16 @@ export default function SolicitudModal({
                 {simulacion?.total_intereses_estimado ? formatMoney(simulacion.total_intereses_estimado, monedaSimbolo) : '—'}
               </span>
               <span className="text-[10px] text-slate-400 block">Base {productoSeleccionado?.tasa_interes_anual ?? '0'}% TNA</span>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-white border border-slate-200">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Seguro</span>
+              <span className="font-display font-semibold text-teal-800 text-sm tabular-nums">
+                {simulacion?.total_seguro ? formatMoney(simulacion.total_seguro, monedaSimbolo) : '—'}
+              </span>
+              <span className="text-[10px] text-slate-400 block">
+                {productoSeleccionado?.tasa_seguro_desgravamen ? `${Number(productoSeleccionado.tasa_seguro_desgravamen).toFixed(2)}% mensual` : 'Desgravamen'}
+              </span>
             </div>
 
             <div className="p-2.5 rounded-lg bg-white border border-slate-200">

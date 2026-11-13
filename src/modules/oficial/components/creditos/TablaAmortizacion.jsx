@@ -34,6 +34,7 @@ function getEstadoCuotaBadge(estado) {
  *   monedaSimbolo?: string,
  *   totalCapital?: number|string,
  *   totalInteres?: number|string,
+ *   totalSeguro?: number|string,
  *   totalPagar?: number|string,
  *   showEstado?: boolean
  * }} props
@@ -43,6 +44,7 @@ export default function TablaAmortizacion({
   monedaSimbolo = 'Bs.',
   totalCapital,
   totalInteres,
+  totalSeguro,
   totalPagar,
   showEstado = true,
 }) {
@@ -57,6 +59,7 @@ export default function TablaAmortizacion({
   // Si no se pasaron totales calculados, calcularlos de la lista
   const sumCapital = totalCapital ?? cuotas.reduce((acc, c) => acc + Number(c.capital || 0), 0)
   const sumInteres = totalInteres ?? cuotas.reduce((acc, c) => acc + Number(c.interes || 0), 0)
+  const sumSeguro = totalSeguro ?? cuotas.reduce((acc, c) => acc + Number(c.seguro || 0), 0)
   const sumPagar = totalPagar ?? cuotas.reduce((acc, c) => acc + Number(c.cuota || 0), 0)
 
   return (
@@ -69,6 +72,7 @@ export default function TablaAmortizacion({
             <th className="px-3.5 py-2.5 text-right">Saldo Inicial</th>
             <th className="px-3.5 py-2.5 text-right">Capital</th>
             <th className="px-3.5 py-2.5 text-right">Interés</th>
+            <th className="px-3.5 py-2.5 text-right">Seguro</th>
             <th className="px-3.5 py-2.5 text-right">Cuota Total</th>
             <th className="px-3.5 py-2.5 text-right">Saldo Final</th>
             {showEstado && <th className="px-3.5 py-2.5 text-center">Estado</th>}
@@ -91,6 +95,9 @@ export default function TablaAmortizacion({
               </td>
               <td className="px-3.5 py-2 text-right text-emerald-800 tabular-nums">
                 {formatMoney(c.interes, monedaSimbolo)}
+              </td>
+              <td className="px-3.5 py-2 text-right text-teal-800 tabular-nums">
+                {formatMoney(c.seguro, monedaSimbolo)}
               </td>
               <td className="px-3.5 py-2 text-right font-bold text-[#064e3b] tabular-nums">
                 {formatMoney(c.cuota, monedaSimbolo)}
@@ -123,6 +130,9 @@ export default function TablaAmortizacion({
             </td>
             <td className="px-3.5 py-2.5 text-right tabular-nums text-emerald-900">
               {formatMoney(sumInteres, monedaSimbolo)}
+            </td>
+            <td className="px-3.5 py-2.5 text-right tabular-nums text-teal-900">
+              {formatMoney(sumSeguro, monedaSimbolo)}
             </td>
             <td className="px-3.5 py-2.5 text-right tabular-nums text-[#064e3b]">
               {formatMoney(sumPagar, monedaSimbolo)}
