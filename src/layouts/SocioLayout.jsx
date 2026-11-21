@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { label: 'Mi Cuenta', path: '/socio/mi-cuenta' },
   { label: 'Mis Créditos', path: '/socio/mis-creditos' },
   { label: 'Notificaciones', path: '/socio/notificaciones', modulo: 'notificaciones_socios' },
+  { label: 'Calificar servicio', path: '/socio/calificar' },
 ]
 
 export default function SocioLayout() {

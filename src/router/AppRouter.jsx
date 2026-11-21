@@ -84,6 +84,8 @@ import EstadoResultadosPage from '../modules/contador/pages/EstadoResultadosPage
 import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
 import SocioMiCuentaPage from '../modules/socio/pages/MiCuentaPage'
 import SocioMisCreditosPage from '../modules/socio/pages/MisCreditosPage'
+import CalificarServicioPage from '../modules/socio/pages/CalificarServicioPage'
+import FeedbackClientesPage from '../modules/admin/pages/FeedbackClientesPage'
 
 // ── Shared / DPF ──────────────────────────────────────────────
 import PlazoFijoPage from '../shared/components/dpf/PlazoFijoPage'
@@ -163,6 +165,7 @@ export default function AppRouter() {
             <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
+            <Route path="feedback" element={<FeedbackClientesPage />} />
             <Route
               path="notificaciones"
               element={
@@ -192,6 +195,7 @@ export default function AppRouter() {
             <Route path="cartera" element={<CarteraPage />} />
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
+            <Route path="feedback" element={<FeedbackClientesPage />} />
             <Route
               path="notificaciones"
               element={
@@ -223,6 +227,7 @@ export default function AppRouter() {
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />
+            <Route path="feedback" element={<FeedbackClientesPage />} />
           </Route>
         </Route>
 
@@ -242,6 +247,7 @@ export default function AppRouter() {
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
+            <Route path="feedback" element={<FeedbackClientesPage />} />
             <Route
               path="informes-asfi"
               element={
@@ -262,6 +268,7 @@ export default function AppRouter() {
             <Route path="socios" element={<AsesorSociosPage />} />
             <Route path="creditos" element={<AsesorCreditosPage />} />
             <Route path="caja" element={<AsesorCajaPage />} />
+            <Route path="feedback" element={<FeedbackClientesPage />} />
           </Route>
         </Route>
 
@@ -273,6 +280,7 @@ export default function AppRouter() {
               <Route path="dashboard" element={<SocioDashboardPage />} />
               <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
               <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
+              <Route path="calificar" element={<CalificarServicioPage />} />
               <Route
                 path="notificaciones"
                 element={

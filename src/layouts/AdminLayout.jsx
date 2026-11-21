@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { label: 'Tipos de Cambio', path: '/admin/tipos-cambio' },
   { label: 'Parámetros Contables', path: '/admin/parametros-contables' },
   { label: 'Reportes', path: '/admin/reportes' },
+  { label: 'Feedback de clientes', path: '/admin/feedback' },
   { label: 'Informes ASFI', path: '/admin/informes-asfi', modulo: 'informes_asfi' },
   { label: 'Bitácora', path: '/admin/bitacora', modulo: 'respaldos_bitacora' },
   { label: 'Configuración', path: '/admin/configuracion' },

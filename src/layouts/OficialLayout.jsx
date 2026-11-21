@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Plazo Fijo', path: '/oficial/plazo-fijo' },
   { label: 'Créditos', path: '/oficial/creditos' },
   { label: 'Socios', path: '/oficial/socios' },
+  { label: 'Feedback de clientes', path: '/oficial/feedback' },
 ]
 
 export default function OficialLayout() {
