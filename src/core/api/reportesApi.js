@@ -151,3 +151,32 @@ export async function exportReporte(endpoint, parametros, formato) {
     timeout: 60000,
   })
 }
+
+/**
+ * Get available filter options for portfolio and arrears reports.
+ * GET /api/v1/reportes/filtros
+ * @returns {Promise<{
+ *   productos: Array<{ id: number, nombre: string, tipo_credito: string }>,
+ *   oficiales: Array<{ id: number, nombre: string }>,
+ *   tipos_credito: string[],
+ *   estados_mora: string[],
+ * }>}
+ */
+export async function getReportesFiltros() {
+  const { data } = await client.get('/reportes/filtros')
+  return data
+}
+
+/**
+ * Export arrears (mora) report to file with UTF-8 BOM.
+ * GET /api/v1/reportes/mora/export?fecha_corte=&moneda_id=&formato=
+ * @param {object} [params]
+ * @returns {Promise<any>}
+ */
+export async function exportMoraReport(params = {}) {
+  const response = await client.get('/reportes/mora/export', {
+    params,
+    responseType: 'blob',
+  })
+  return response
+}

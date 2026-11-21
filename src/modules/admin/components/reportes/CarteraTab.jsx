@@ -18,7 +18,7 @@ import HorizontalBarChart from './HorizontalBarChart'
 /**
  * Tab 2: Reporte Integral de Cartera de Créditos (CU-W33).
  */
-export default function CarteraTab({ fechaCorte, monedaId, refreshTrigger, sim }) {
+export default function CarteraTab({ fechaCorte, monedaId, filtros = {}, refreshTrigger, sim }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -31,6 +31,7 @@ export default function CarteraTab({ fechaCorte, monedaId, refreshTrigger, sim }
     getCarteraReport({
       fecha_corte: fechaCorte,
       moneda_id: monedaId,
+      ...filtros,
     })
       .then((res) => {
         if (!isMounted || reqId !== requestIdRef.current) return
@@ -50,7 +51,7 @@ export default function CarteraTab({ fechaCorte, monedaId, refreshTrigger, sim }
     return () => {
       isMounted = false
     }
-  }, [fechaCorte, monedaId, refreshTrigger])
+  }, [fechaCorte, monedaId, filtros, refreshTrigger])
 
   if (loading) {
     return (

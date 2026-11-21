@@ -280,6 +280,7 @@ export default function AppRouter() {
               <Route path="dashboard" element={<SocioDashboardPage />} />
               <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
               <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
+              <Route path="mis-creditos/:id" element={<SocioMisCreditosPage />} />
               <Route path="calificar" element={<CalificarServicioPage />} />
               <Route
                 path="notificaciones"
