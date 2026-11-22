@@ -198,34 +198,53 @@ export default function PlanPagosModal({ open, onClose, solicitud }) {
 
         {/* ── Resumen de Totales Proyectados ── */}
         {plan && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Capital Total</span>
-              <span className="font-display font-bold text-slate-900 text-sm tabular-nums">
-                {formatMoney(plan.total_capital, sim)}
-              </span>
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Capital Total</span>
+                <span className="font-display font-bold text-slate-900 text-sm tabular-nums">
+                  {formatMoney(plan.total_capital, sim)}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Intereses</span>
+                <span className="font-display font-bold text-emerald-800 text-sm tabular-nums">
+                  {formatMoney(plan.total_interes, sim)}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Seguro</span>
+                <span className="font-display font-bold text-teal-800 text-sm tabular-nums">
+                  {formatMoney(plan.total_seguro, sim)}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Proyectado a Pagar</span>
+                <span className="font-display font-bold text-[#064e3b] text-sm tabular-nums">
+                  {formatMoney(plan.total_pagar, sim)}
+                </span>
+              </div>
             </div>
 
-            <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Intereses</span>
-              <span className="font-display font-bold text-emerald-800 text-sm tabular-nums">
-                {formatMoney(plan.total_interes, sim)}
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Seguro</span>
-              <span className="font-display font-bold text-teal-800 text-sm tabular-nums">
-                {formatMoney(plan.total_seguro, sim)}
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-lg border border-slate-200 bg-white">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Proyectado a Pagar</span>
-              <span className="font-display font-bold text-[#064e3b] text-sm tabular-nums">
-                {formatMoney(plan.total_pagar, sim)}
-              </span>
-            </div>
+            {(plan.tea != null || plan.teac != null) && (
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="p-2 rounded-lg border border-emerald-200 bg-emerald-50/60 flex items-center justify-between px-4">
+                  <span className="text-[11px] uppercase font-bold text-slate-600">Tasa Efectiva Anual (TEA)</span>
+                  <span className="font-mono font-bold text-emerald-900 text-sm">
+                    {Number(plan.tea).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg border border-teal-200 bg-teal-50/60 flex items-center justify-between px-4">
+                  <span className="text-[11px] uppercase font-bold text-slate-600">Tasa Efectiva Anual con Cargos (TEAC)</span>
+                  <span className="font-mono font-bold text-teal-900 text-sm">
+                    {Number(plan.teac).toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -246,6 +265,8 @@ export default function PlanPagosModal({ open, onClose, solicitud }) {
             totalSeguro={plan?.total_seguro}
             totalPagar={plan?.total_pagar}
             showEstado={false}
+            tea={plan?.tea}
+            teac={plan?.teac}
           />
         )}
 

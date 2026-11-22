@@ -742,6 +742,62 @@ export default function DetalleSolicitudModal({
               )}
             </div>
 
+            {/* ── Declaración Vivienda de Interés Social (VIS — DS 1842) ── */}
+            {(currentSolicitud.vivienda_social || currentSolicitud.datos_declarados?.vivienda_social) && (() => {
+              const vis = currentSolicitud.vivienda_social || currentSolicitud.datos_declarados?.vivienda_social
+              const ufvCalc = vis.valor_ufv != null ? Number(vis.valor_ufv) : (Number(vis.valor_vivienda || 0) / 2.60)
+              return (
+                <div className="rounded-xl border border-emerald-300 bg-emerald-50/60 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-[#064e3b]">home</span>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#064e3b]">
+                        Vivienda de Interés Social Declarada (VIS — DS 1842)
+                      </h4>
+                    </div>
+                    <Badge variant="green">Normativa ASFI</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center text-xs">
+                    <div className="p-2 bg-white rounded-lg border border-emerald-100">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Valor Comercial</span>
+                      <span className="font-mono font-bold text-slate-900 text-xs">
+                        {formatMoney(vis.valor_vivienda, 'Bs.')}
+                      </span>
+                    </div>
+
+                    <div className="p-2 bg-white rounded-lg border border-emerald-100">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Tipo Inmueble</span>
+                      <span className="font-bold text-slate-800 text-xs">
+                        {vis.tipo_inmueble === 'DEPARTAMENTO' ? 'Departamento' : 'Casa'}
+                      </span>
+                    </div>
+
+                    <div className="p-2 bg-white rounded-lg border border-emerald-100">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Única Vivienda</span>
+                      <span className="font-bold text-emerald-800 text-xs">
+                        {vis.unica_vivienda ? 'Acreditada (Sí)' : 'No'}
+                      </span>
+                    </div>
+
+                    <div className="p-2 bg-white rounded-lg border border-emerald-100">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Equivalente UFV</span>
+                      <span className="font-mono font-bold text-slate-900 text-xs">
+                        {ufvCalc.toLocaleString('es-BO', { maximumFractionDigits: 2 })} UFV
+                      </span>
+                    </div>
+
+                    <div className="p-2 bg-white rounded-lg border border-emerald-100">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Tasa Máx. VIS</span>
+                      <span className="font-mono font-bold text-emerald-800 text-xs">
+                        {vis.tasa_maxima != null ? `${Number(vis.tasa_maxima).toFixed(2)}%` : '6.50%'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* ── Evaluación Socioeconómica y Capacidad de Pago ── */}
             {currentSolicitud.evaluacion && (
               <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-3">

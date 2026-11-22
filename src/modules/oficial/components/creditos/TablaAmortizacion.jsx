@@ -15,12 +15,16 @@ function formatDate(dateStr) {
 function getEstadoCuotaBadge(estado) {
   switch (estado) {
     case 'PAGADO':
+    case 'PAGADA':
       return 'bg-emerald-100 text-emerald-800 border-emerald-200'
     case 'PENDIENTE':
       return 'bg-amber-100 text-amber-800 border-amber-200'
     case 'VENCIDO':
+    case 'VENCIDA':
     case 'EN_MORA':
       return 'bg-rose-100 text-rose-800 border-rose-200'
+    case 'REPROGRAMADA':
+      return 'bg-purple-100 text-purple-800 border-purple-200'
     default:
       return 'bg-slate-100 text-slate-700 border-slate-200'
   }
@@ -36,7 +40,9 @@ function getEstadoCuotaBadge(estado) {
  *   totalInteres?: number|string,
  *   totalSeguro?: number|string,
  *   totalPagar?: number|string,
- *   showEstado?: boolean
+ *   showEstado?: boolean,
+ *   tea?: number|string,
+ *   teac?: number|string
  * }} props
  */
 export default function TablaAmortizacion({
@@ -47,6 +53,8 @@ export default function TablaAmortizacion({
   totalSeguro,
   totalPagar,
   showEstado = true,
+  tea,
+  teac,
 }) {
   if (!Array.isArray(cuotas) || cuotas.length === 0) {
     return (
@@ -63,7 +71,35 @@ export default function TablaAmortizacion({
   const sumPagar = totalPagar ?? cuotas.reduce((acc, c) => acc + Number(c.cuota || 0), 0)
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+    <div className="space-y-2.5">
+      {(tea != null || teac != null) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-[#064e3b]">percent</span>
+            <span className="font-bold text-slate-800">Tasas Efectivas Oficiales (Ley 393 / ASFI):</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {tea != null && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-600">TEA:</span>
+                <span className="font-mono font-bold text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-200 shadow-xs">
+                  {Number(tea).toFixed(2)}%
+                </span>
+              </div>
+            )}
+            {teac != null && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-slate-600">TEAC:</span>
+                <span className="font-mono font-bold text-teal-900 bg-white px-2 py-0.5 rounded-md border border-teal-200 shadow-xs">
+                  {Number(teac).toFixed(2)}%
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
       <table className="w-full text-left border-collapse text-xs">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -109,10 +145,10 @@ export default function TablaAmortizacion({
                 <td className="px-3.5 py-2 text-center">
                   <span
                     className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full border ${getEstadoCuotaBadge(
-                      c.estado_pago || 'PENDIENTE',
+                      c.estado_pago || c.estado || 'PENDIENTE',
                     )}`}
                   >
-                    {c.estado_pago || 'PENDIENTE'}
+                    {c.estado_pago || c.estado || 'PENDIENTE'}
                   </span>
                 </td>
               )}
@@ -142,6 +178,7 @@ export default function TablaAmortizacion({
           </tr>
         </tfoot>
       </table>
+    </div>
     </div>
   )
 }

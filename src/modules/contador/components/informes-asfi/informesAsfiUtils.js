@@ -5,11 +5,14 @@ import { toCents, fromCents } from '../contabilidadUtils.js'
  */
 
 export const ASFI_TIPOS_CREDITO = [
+  { value: 'EMPRESARIAL', label: 'Crédito Empresarial', shortLabel: 'Empresarial' },
+  { value: 'PYME', label: 'Crédito PYME', shortLabel: 'PYME' },
   { value: 'MICROCREDITO', label: 'Microcrédito (Art. 8.1)', shortLabel: 'Microcrédito' },
   { value: 'MICROCREDITO_AGROPECUARIO', label: 'Microcrédito Agropecuario (Art. 8.2)', shortLabel: 'Micro Agropecuario' },
   { value: 'CONSUMO', label: 'Consumo (Art. 8)', shortLabel: 'Consumo' },
   { value: 'VIVIENDA_HIPOTECARIA', label: 'Vivienda con Garantía Hipotecaria (Art. 7)', shortLabel: 'Vivienda Hipotecaria' },
   { value: 'VIVIENDA_SIN_GARANTIA', label: 'Vivienda sin Garantía Hipotecaria (Art. 7)', shortLabel: 'Vivienda s/Garantía' },
+  { value: 'VIVIENDA_SOCIAL', label: 'Vivienda de Interés Social (VIS - DS 1842)', shortLabel: 'Vivienda Social (VIS)' },
 ]
 
 export const ASFI_CATEGORIAS = ['A', 'B', 'C', 'D', 'E', 'F']

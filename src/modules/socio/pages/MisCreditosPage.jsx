@@ -306,6 +306,27 @@ export default function MisCreditosPage() {
                     {formatDate(credInfo?.fecha_desembolso)}
                   </span>
                 </div>
+
+                {(credInfo?.tea != null || credInfo?.teac != null) && (
+                  <>
+                    <div className="space-y-0.5">
+                      <span className="text-slate-400 font-semibold uppercase text-[10px] block">
+                        Tasa Efectiva Anual (TEA)
+                      </span>
+                      <span className="font-semibold text-emerald-800 font-mono">
+                        {Number(credInfo.tea).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-slate-400 font-semibold uppercase text-[10px] block">
+                        Tasa Efectiva con Cargos (TEAC)
+                      </span>
+                      <span className="font-semibold text-teal-800 font-mono">
+                        {Number(credInfo.teac).toFixed(2)}%
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
 
@@ -487,6 +508,7 @@ export default function MisCreditosPage() {
                     {cuotas.map((c) => {
                       const isPagada = c.estado === 'PAGADA'
                       const isVencida = c.estado === 'VENCIDA'
+                      const isReprogramada = c.estado === 'REPROGRAMADA'
                       return (
                         <tr key={c.numero} className="hover:bg-slate-50/80">
                           <td className="py-2 px-3 font-mono font-semibold">#{c.numero}</td>
@@ -497,7 +519,10 @@ export default function MisCreditosPage() {
                           <td className="py-2 px-3 font-mono text-right font-bold text-slate-900">{formatMoney(c.monto_total, curSim)}</td>
                           <td className="py-2 px-3 font-mono text-right text-slate-600">{formatMoney(c.saldo_capital, curSim)}</td>
                           <td className="py-2 px-3 text-center">
-                            <Badge variant={isPagada ? 'green' : isVencida ? 'red' : 'slate'} size="sm">
+                            <Badge
+                              variant={isPagada ? 'green' : isVencida ? 'red' : isReprogramada ? 'purple' : 'slate'}
+                              size="sm"
+                            >
                               {c.estado}
                             </Badge>
                           </td>

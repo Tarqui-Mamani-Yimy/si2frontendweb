@@ -79,6 +79,12 @@ export default function SolicitudModal({
   const [destinoDetalle, setDestinoDetalle] = useState(() => solicitud?.destino_detalle || '')
   const [observaciones, setObservaciones] = useState(() => solicitud?.observaciones || '')
 
+  // Vivienda de Interés Social (VIS — DS 1842)
+  const visDataInit = solicitud?.vivienda_social || solicitud?.datos_declarados?.vivienda_social || null
+  const [valorVivienda, setValorVivienda] = useState(() => visDataInit?.valor_vivienda != null ? String(visDataInit.valor_vivienda) : '')
+  const [tipoInmueble, setTipoInmueble] = useState(() => visDataInit?.tipo_inmueble || 'CASA')
+  const [unicaVivienda, setUnicaVivienda] = useState(() => visDataInit?.unica_vivienda != null ? Boolean(visDataInit.unica_vivienda) : true)
+
   // Evaluación socioeconómica
   const [ingresoMensual, setIngresoMensual] = useState(() => solicitud?.evaluacion?.ingreso_mensual != null ? String(solicitud.evaluacion.ingreso_mensual) : '')
   const [egresoMensual, setEgresoMensual] = useState(() => solicitud?.evaluacion?.egreso_mensual != null ? String(solicitud.evaluacion.egreso_mensual) : '')
@@ -127,6 +133,18 @@ export default function SolicitudModal({
     if (!productoId) return null
     return productosActivos.find((p) => String(p.id) === String(productoId)) || null
   }, [productosActivos, productoId])
+
+  const isVisProduct = productoSeleccionado?.tipo_credito_asfi === 'VIVIENDA_SOCIAL'
+  const UFV_BOB = 2.60
+  const valorViviendaNum = parseFloat(valorVivienda) || 0
+  const valorUfv = valorViviendaNum > 0 ? valorViviendaNum / UFV_BOB : 0
+  const maxUfvPermitido = tipoInmueble === 'DEPARTAMENTO' ? 400000 : 460000
+  let tasaMaximaVis = 6.50
+  if (valorUfv > 0) {
+    if (valorUfv <= 255000) tasaMaximaVis = 5.50
+    else if (valorUfv <= 380000) tasaMaximaVis = 6.00
+    else tasaMaximaVis = 6.50
+  }
 
   const monedaSimbolo = productoSeleccionado?.moneda?.simbolo || solicitud?.moneda?.simbolo || 'Bs.'
 
@@ -257,6 +275,19 @@ export default function SolicitudModal({
       errs.antiguedad_laboral_meses = 'La antigüedad laboral debe ser 0 o mayor.'
     }
 
+    if (isVisProduct) {
+      const val = parseFloat(valorVivienda)
+      if (isNaN(val) || val <= 0) {
+        errs.valor_vivienda = 'La solicitud de vivienda de interés social requiere los datos de la vivienda'
+      } else {
+        if (!unicaVivienda) {
+          errs.unica_vivienda = 'La vivienda de interés social debe ser la única vivienda del socio'
+        }
+        // UFV limits and the maximum rate depend on the backend UFV_BOB setting;
+        // the API validates them and its message is shown on submit.
+      }
+    }
+
     return errs
   }
 
@@ -285,6 +316,14 @@ export default function SolicitudModal({
         observaciones: evalObservaciones.trim() || undefined,
       }
 
+      const viviendaSocialPayload = isVisProduct
+        ? {
+            valor_vivienda: parseFloat(valorVivienda).toFixed(2),
+            tipo_inmueble: tipoInmueble,
+            unica_vivienda: Boolean(unicaVivienda),
+          }
+        : undefined
+
       if (isEdit) {
         // En PUT no se envía socio_id
         const payloadEdit = {
@@ -295,6 +334,7 @@ export default function SolicitudModal({
           destino_detalle: destino === 'OTRO' ? destinoDetalle.trim() : undefined,
           observaciones: observaciones.trim() || undefined,
           evaluacion: payloadEvaluacion,
+          ...(viviendaSocialPayload ? { vivienda_social: viviendaSocialPayload } : {}),
         }
         await actualizarSolicitudCredito(solicitud.id, payloadEdit)
       } else {
@@ -307,6 +347,7 @@ export default function SolicitudModal({
           destino_detalle: destino === 'OTRO' ? destinoDetalle.trim() : undefined,
           observaciones: observaciones.trim() || undefined,
           evaluacion: payloadEvaluacion,
+          ...(viviendaSocialPayload ? { vivienda_social: viviendaSocialPayload } : {}),
         }
         await crearSolicitudCredito(payloadCreate)
       }
@@ -569,6 +610,121 @@ export default function SolicitudModal({
           </div>
         </div>
 
+        {/* ── 2.1 Vivienda de Interés Social (VIS — DS 1842) ── */}
+        {isVisProduct && (
+          <div className="space-y-3 rounded-xl border border-emerald-300 bg-emerald-50/50 p-3.5">
+            <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px] text-[#064e3b]">home</span>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#064e3b]">
+                  Declaración de Vivienda de Interés Social (VIS — DS 1842)
+                </h4>
+              </div>
+              <Badge variant="green">Régimen Social ASFI</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField
+                id="valor_vivienda"
+                label="Valor Comercial de la Vivienda (Bs.) *"
+                error={errors.valor_vivienda}
+              >
+                <Input
+                  id="valor_vivienda"
+                  type="number"
+                  step="0.01"
+                  min="1"
+                  value={valorVivienda}
+                  onChange={(e) => setValorVivienda(e.target.value)}
+                  placeholder="Ej. 350000.00"
+                  hasError={Boolean(errors.valor_vivienda)}
+                  className="tabular-nums font-bold"
+                />
+              </FormField>
+
+              <FormField id="tipo_inmueble" label="Tipo de Inmueble *">
+                <select
+                  id="tipo_inmueble"
+                  value={tipoInmueble}
+                  onChange={(e) => setTipoInmueble(e.target.value)}
+                  className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs text-[#0b1c30] outline-none transition focus:border-[#006c49] focus:ring-2 focus:ring-[#006c49]/20"
+                >
+                  <option value="CASA">Casa (Límite: 460,000 UFV)</option>
+                  <option value="DEPARTAMENTO">Departamento (Límite: 400,000 UFV)</option>
+                </select>
+              </FormField>
+            </div>
+
+            <div className="pt-1">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="unica_vivienda"
+                  checked={unicaVivienda}
+                  onChange={(e) => setUnicaVivienda(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#064e3b] focus:ring-[#064e3b]"
+                />
+                <div className="text-xs">
+                  <span className="font-semibold text-slate-800 block">
+                    Declaración jurada de única vivienda
+                  </span>
+                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                    El socio certifica que este inmueble será su única vivienda en todo el territorio nacional (requisito DS 1842).
+                  </span>
+                </div>
+              </label>
+              {errors.unica_vivienda && (
+                <p className="mt-1 text-[11px] text-rose-600 font-medium">{errors.unica_vivienda}</p>
+              )}
+            </div>
+
+            {/* Ficha técnica UFV y tasa máxima */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-emerald-200/60 text-center">
+              <div className="p-2 rounded-lg bg-white border border-emerald-100">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Valor en UFV</span>
+                <span className="font-mono font-bold text-slate-900 text-xs">
+                  {valorUfv > 0 ? valorUfv.toLocaleString('es-BO', { maximumFractionDigits: 2 }) : '0.00'} UFV
+                </span>
+                <span className="text-[9px] text-slate-400 block">Referencial (UFV = 2.60 Bs.); valida el servidor</span>
+              </div>
+
+              <div className="p-2 rounded-lg bg-white border border-emerald-100">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Límite Normativo</span>
+                <span className={`font-mono font-bold text-xs ${valorUfv > maxUfvPermitido ? 'text-rose-600' : 'text-slate-800'}`}>
+                  {maxUfvPermitido.toLocaleString('es-BO')} UFV
+                </span>
+                <span className="text-[9px] text-slate-400 block">
+                  {valorUfv > maxUfvPermitido ? '¡Supera límite!' : 'Conforme'}
+                </span>
+              </div>
+
+              <div className="p-2 rounded-lg bg-white border border-emerald-100">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Tasa Máx. Permitida</span>
+                <span className="font-mono font-bold text-emerald-800 text-xs">
+                  {tasaMaximaVis.toFixed(2)}% anual
+                </span>
+                <span className="text-[9px] text-slate-400 block">Según tramo UFV</span>
+              </div>
+
+              <div className="p-2 rounded-lg bg-white border border-emerald-100">
+                <span className="text-[10px] text-slate-400 block uppercase font-bold">Tasa del Producto</span>
+                <span className={`font-mono font-bold text-xs ${
+                  parseFloat(productoSeleccionado?.tasa_interes_anual || 0) > tasaMaximaVis
+                    ? 'text-rose-600'
+                    : 'text-slate-800'
+                }`}>
+                  {Number(productoSeleccionado?.tasa_interes_anual || 0).toFixed(2)}% anual
+                </span>
+                <span className="text-[9px] text-slate-400 block">
+                  {parseFloat(productoSeleccionado?.tasa_interes_anual || 0) > tasaMaximaVis
+                    ? 'Excede tasa VIS'
+                    : 'Dentro de norma'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── 3. Evaluación Socioeconómica y Capacidad de Pago ── */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
@@ -789,6 +945,26 @@ export default function SolicitudModal({
               </div>
             </div>
           </div>
+
+          {/* Indicadores TEA / TEAC (Normativa ASFI / Ley 393) */}
+          {(simulacion?.tea != null || simulacion?.teac != null) && (
+            <div className="flex flex-wrap items-center gap-3 p-2.5 rounded-lg border border-emerald-200 bg-white text-xs">
+              <span className="font-bold text-slate-700">Costos Financieros Oficiales:</span>
+              {simulacion?.tea != null && (
+                <div className="flex items-center gap-1 font-mono text-emerald-800">
+                  <span className="text-slate-500 font-sans">TEA:</span>
+                  <strong>{Number(simulacion.tea).toFixed(2)}%</strong>
+                </div>
+              )}
+              {simulacion?.teac != null && (
+                <div className="flex items-center gap-1 font-mono text-teal-800">
+                  <span className="text-slate-500 font-sans">TEAC:</span>
+                  <strong>{Number(simulacion.teac).toFixed(2)}%</strong>
+                </div>
+              )}
+              <span className="text-[10px] text-slate-400 italic ml-auto">Normativa ASFI / Ley 393</span>
+            </div>
+          )}
 
           {/* Advertencia informativa si supera RCI máximo */}
           {simulacion?.supera_relacion_maxima && (

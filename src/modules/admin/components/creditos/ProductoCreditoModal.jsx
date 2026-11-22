@@ -114,6 +114,8 @@ export default function ProductoCreditoModal({
     const tasa = parseFloat(form.tasa_interes_anual)
     if (isNaN(tasa) || tasa < 0 || tasa > 100) {
       errs.tasa_interes_anual = 'Debe estar entre 0.00% y 100.00%.'
+    } else if (form.tipo_credito_asfi === 'VIVIENDA_SOCIAL' && tasa > 6.50) {
+      errs.tasa_interes_anual = 'La tasa de un producto de vivienda de interés social no puede superar 6.50% anual'
     }
 
     const tasaSeguro = parseFloat(form.tasa_seguro_desgravamen)
@@ -148,11 +150,14 @@ export default function ProductoCreditoModal({
     }
 
     const ASFI_TIPOS = [
+      'EMPRESARIAL',
+      'PYME',
       'MICROCREDITO',
       'MICROCREDITO_AGROPECUARIO',
       'CONSUMO',
       'VIVIENDA_HIPOTECARIA',
       'VIVIENDA_SIN_GARANTIA',
+      'VIVIENDA_SOCIAL',
     ]
     if (form.tipo_credito_asfi && !ASFI_TIPOS.includes(form.tipo_credito_asfi)) {
       errs.tipo_credito_asfi = 'Seleccione una clasificación regulatoria ASFI válida.'
@@ -338,12 +343,23 @@ export default function ProductoCreditoModal({
                   className="w-full h-10 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-sm text-[#0b1c30] outline-none transition focus:border-[#006c49] focus:bg-white focus:ring-2 focus:ring-[#006c49]/20"
                 >
                   <option value="">— Sin clasificar —</option>
+                  <option value="EMPRESARIAL">Empresarial</option>
+                  <option value="PYME">PYME</option>
                   <option value="MICROCREDITO">Microcrédito (Art. 8.1)</option>
                   <option value="MICROCREDITO_AGROPECUARIO">Microcrédito Agropecuario (Art. 8.2)</option>
                   <option value="CONSUMO">Consumo (Art. 8)</option>
                   <option value="VIVIENDA_HIPOTECARIA">Vivienda con Garantía Hipotecaria (Art. 7)</option>
                   <option value="VIVIENDA_SIN_GARANTIA">Vivienda sin Garantía Hipotecaria (Art. 7)</option>
+                  <option value="VIVIENDA_SOCIAL">Vivienda de Interés Social (VIS - DS 1842)</option>
                 </select>
+                {form.tipo_credito_asfi === 'VIVIENDA_SOCIAL' && (
+                  <div className="mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-1.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#064e3b] shrink-0 mt-0.5">home</span>
+                    <span>
+                      <strong>Régimen VIS (DS 1842):</strong> Tasa de interés máxima fijada por ley en <strong>6.50% anual</strong>. Los préstamos VIS requieren declaración de vivienda única y están sujetos a límites en UFV.
+                    </span>
+                  </div>
+                )}
                 <p className="text-[11px] text-slate-500 mt-1">
                   Define los tramos normativos de mora y la alícuota porcentual de previsión regulatoria.
                 </p>

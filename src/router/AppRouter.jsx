@@ -41,6 +41,7 @@ import RegistrarSocioPage from '../modules/admin/pages/RegistrarSocio'
 import RegistrarUsuarioPage from '../modules/admin/pages/RegistrarUsuarioPage'
 import UsuariosPage from '../modules/admin/pages/UsuariosPage'
 import RolesPage from '../modules/admin/pages/RolesPage'
+import ReclamosPage from '../modules/admin/pages/ReclamosPage'
 
 // ── Asesor (legacy alias) ─────────────────────────────────────
 import AsesorCajaPage from '../modules/asesor/pages/CajaPage'
@@ -166,6 +167,7 @@ export default function AppRouter() {
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="reportes" element={<AdminReportesPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
+            <Route path="reclamos" element={<ReclamosPage />} />
             <Route
               path="notificaciones"
               element={
@@ -196,6 +198,7 @@ export default function AppRouter() {
             <Route path="plazo-fijo" element={<PlazoFijoPage />} />
             <Route path="socios" element={<CajeroSociosPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
+            <Route path="reclamos" element={<ReclamosPage />} />
             <Route
               path="notificaciones"
               element={
@@ -228,6 +231,7 @@ export default function AppRouter() {
             <Route path="creditos" element={<OficialCreditosPage />} />
             <Route path="socios" element={<OficialSociosPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
+            <Route path="reclamos" element={<ReclamosPage />} />
           </Route>
         </Route>
 
@@ -248,6 +252,7 @@ export default function AppRouter() {
             <Route path="comite" element={<ComitePage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
+            <Route path="reclamos" element={<ReclamosPage />} />
             <Route
               path="informes-asfi"
               element={
@@ -269,6 +274,7 @@ export default function AppRouter() {
             <Route path="creditos" element={<AsesorCreditosPage />} />
             <Route path="caja" element={<AsesorCajaPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
+            <Route path="reclamos" element={<ReclamosPage />} />
           </Route>
         </Route>
 

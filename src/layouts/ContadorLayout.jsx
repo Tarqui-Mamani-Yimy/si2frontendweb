@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'Reportes', path: '/contador/reportes' },
   { label: 'Feedback de clientes', path: '/contador/feedback' },
   { label: 'Informes ASFI', path: '/contador/informes-asfi', modulo: 'informes_asfi' },
+  { label: 'Punto de Reclamo', path: '/contador/reclamos' },
   { label: 'Cumplimiento', path: '/contador/cumplimiento' },
 ]
 

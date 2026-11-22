@@ -623,4 +623,88 @@ export async function listarGarantiasCredito(creditoId) {
   return data
 }
 
+/**
+ * Solicitar reprogramación de un crédito vigente (Staff: ADMINISTRADOR, OFICIAL_CREDITO).
+ * POST /api/v1/creditos/creditos/{credito_id}/reprogramaciones
+ * @param {number|string} creditoId
+ * @param {{ motivo: string, nuevo_plazo_meses: number }} payload
+ * @returns {Promise<object>} ReprogramacionCreditoOut
+ */
+export async function solicitarReprogramacion(creditoId, payload) {
+  const { data } = await client.post(`/creditos/creditos/${creditoId}/reprogramaciones`, payload)
+  return data
+}
+
+/**
+ * Simular previsualización del cronograma y condiciones de reprogramación de crédito.
+ * POST /api/v1/creditos/creditos/{credito_id}/reprogramaciones/simulacion
+ * @param {number|string} creditoId
+ * @param {{ nuevo_plazo_meses: number }} payload
+ * @returns {Promise<{
+ *   saldo_capital: string,
+ *   interes_diferido: string,
+ *   mora_condonada: string,
+ *   tea: number,
+ *   teac: number,
+ *   cuotas: Array<object>,
+ *   total_capital: string,
+ *   total_interes: string,
+ *   total_seguro: string,
+ *   total_pagar: string
+ * }>}
+ */
+export async function simularReprogramacion(creditoId, payload) {
+  const { data } = await client.post(`/creditos/creditos/${creditoId}/reprogramaciones/simulacion`, payload)
+  return data
+}
+
+/**
+ * Listar el historial de reprogramaciones de un crédito en cartera.
+ * GET /api/v1/creditos/creditos/{credito_id}/reprogramaciones
+ * @param {number|string} creditoId
+ * @returns {Promise<Array<object>>} List[ReprogramacionCreditoOut]
+ */
+export async function listarReprogramacionesCredito(creditoId) {
+  const { data } = await client.get(`/creditos/creditos/${creditoId}/reprogramaciones`)
+  return data
+}
+
+/**
+ * Listar solicitudes de reprogramación institucional (filtros por estado).
+ * GET /api/v1/creditos/reprogramaciones?estado=SOLICITADA|APROBADA|RECHAZADA
+ * @param {{ estado?: string }} params
+ * @returns {Promise<Array<object>>} List[ReprogramacionCreditoOut]
+ */
+export async function listarReprogramaciones(params = {}) {
+  const cleanParams = {}
+  if (params.estado) cleanParams.estado = params.estado
+  const { data } = await client.get('/creditos/reprogramaciones', { params: cleanParams })
+  return data
+}
+
+/**
+ * Aprobar formalmente una reprogramación de crédito (ADMINISTRADOR, OFICIAL_CREDITO).
+ * Convierte cuotas impagas a estado REPROGRAMADA y genera nuevo cronograma.
+ * POST /api/v1/creditos/reprogramaciones/{id}/aprobar
+ * @param {number|string} id
+ * @returns {Promise<object>} ReprogramacionCreditoOut
+ */
+export async function aprobarReprogramacion(id) {
+  const { data } = await client.post(`/creditos/reprogramaciones/${id}/aprobar`)
+  return data
+}
+
+/**
+ * Rechazar solicitud de reprogramación de crédito con justificación técnica (ADMINISTRADOR, OFICIAL_CREDITO).
+ * POST /api/v1/creditos/reprogramaciones/{id}/rechazar
+ * @param {number|string} id
+ * @param {{ motivo: string }} payload
+ * @returns {Promise<object>} ReprogramacionCreditoOut
+ */
+export async function rechazarReprogramacion(id, payload) {
+  const { data } = await client.post(`/creditos/reprogramaciones/${id}/rechazar`, payload)
+  return data
+}
+
+
 

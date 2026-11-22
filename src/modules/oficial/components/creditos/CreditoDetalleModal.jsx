@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Modal from '../../../../components/ui/Modal'
 import Button from '../../../../components/ui/Button'
 import Badge from '../../../../components/ui/Badge'
@@ -10,7 +10,17 @@ import HistorialPagosTable from './HistorialPagosTable'
 import HistorialGestionesTable from './HistorialGestionesTable'
 import GarantiasCreditoTab from '../garantias/GarantiasCreditoTab'
 import ComprobantePagoModal from './ComprobantePagoModal'
-import { getCredito } from '../../../../core/api/creditosApi'
+import {
+  getCredito,
+  solicitarReprogramacion,
+  simularReprogramacion,
+  listarReprogramacionesCredito,
+  aprobarReprogramacion,
+  rechazarReprogramacion,
+} from '../../../../core/api/creditosApi'
+import { useAuthStore, selectUser } from '../../../../core/store/authStore'
+import { normalizeRole } from '../../../../core/utils/roles'
+import { FormField, Input, Textarea } from '../../../../components/ui/FormField'
 
 function formatMoney(value, simbolo = 'Bs.') {
   const n = Number(value ?? 0)
@@ -109,6 +119,151 @@ export default function CreditoDetalleModal({
       isMounted = false
     }
   }, [open, creditoId])
+
+  const user = useAuthStore(selectUser)
+  const roleName = user?.rol?.nombre || ''
+  const roleNorm = normalizeRole(roleName)
+  const canManageReprog =
+    roleNorm === 'administrador' ||
+    roleNorm === 'admin' ||
+    roleNorm === 'superadmin' ||
+    roleNorm === 'oficial_credito' ||
+    roleNorm === 'oficial'
+
+  // ── Estado de Reprogramaciones ──
+  const [reprogramaciones, setReprogramaciones] = useState([])
+  const [loadingReprog, setLoadingReprog] = useState(false)
+  const [reprogError, setReprogError] = useState(null)
+  const [reprogSuccess, setReprogSuccess] = useState(null)
+
+  // Formulario de reprogramación
+  const [nuevoPlazoMeses, setNuevoPlazoMeses] = useState('')
+  const [motivoReprog, setMotivoReprog] = useState('')
+  const [simulacionReprog, setSimulacionReprog] = useState(null)
+  const [simulandoReprog, setSimulandoReprog] = useState(false)
+  const [solicitandoReprog, setSolicitandoReprog] = useState(false)
+  const [aprobandoId, setAprobandoId] = useState(null)
+
+  // Rechazo modal
+  const [modalRechazoOpen, setModalRechazoOpen] = useState(false)
+  const [rechazarTargetId, setRechazarTargetId] = useState(null)
+  const [motivoRechazo, setMotivoRechazo] = useState('')
+  const [rechazando, setRechazando] = useState(false)
+
+  const loadReprogramaciones = useCallback(async () => {
+    if (!creditoId) return
+    setLoadingReprog(true)
+    setReprogError(null)
+    try {
+      const data = await listarReprogramacionesCredito(creditoId)
+      setReprogramaciones(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setReprogError(err.response?.data?.detail || 'Error al cargar reprogramaciones.')
+    } finally {
+      setLoadingReprog(false)
+    }
+  }, [creditoId])
+
+  useEffect(() => {
+    if (open && creditoId && activeTab === 'reprogramacion') {
+      loadReprogramaciones()
+    }
+  }, [open, creditoId, activeTab, loadReprogramaciones])
+
+  async function handleSimularReprogramacion() {
+    const p = parseInt(nuevoPlazoMeses, 10)
+    if (isNaN(p) || p <= 0) {
+      setReprogError('Ingrese un nuevo plazo válido en meses.')
+      return
+    }
+    setSimulandoReprog(true)
+    setReprogError(null)
+    try {
+      const simData = await simularReprogramacion(creditoId, { nuevo_plazo_meses: p })
+      setSimulacionReprog(simData)
+    } catch (err) {
+      setReprogError(err.response?.data?.detail || 'Error al simular la reprogramación.')
+    } finally {
+      setSimulandoReprog(false)
+    }
+  }
+
+  async function handleSolicitarReprogramacion(e) {
+    e.preventDefault()
+    const p = parseInt(nuevoPlazoMeses, 10)
+    if (isNaN(p) || p <= 0) {
+      setReprogError('Ingrese un plazo válido en meses.')
+      return
+    }
+    if (!motivoReprog.trim()) {
+      setReprogError('Debe ingresar el motivo o justificación técnica de la reprogramación.')
+      return
+    }
+    setSolicitandoReprog(true)
+    setReprogError(null)
+    setReprogSuccess(null)
+    try {
+      await solicitarReprogramacion(creditoId, {
+        motivo: motivoReprog.trim(),
+        nuevo_plazo_meses: p,
+      })
+      setReprogSuccess('Solicitud de reprogramación registrada con éxito.')
+      setNuevoPlazoMeses('')
+      setMotivoReprog('')
+      setSimulacionReprog(null)
+      loadReprogramaciones()
+      getCredito(creditoId).then((data) => setCredito(data)).catch(() => {})
+      onUpdated?.()
+    } catch (err) {
+      setReprogError(err.response?.data?.detail || 'Error al registrar la solicitud de reprogramación.')
+    } finally {
+      setSolicitandoReprog(false)
+    }
+  }
+
+  async function handleAprobarReprogramacion(id) {
+    setAprobandoId(id)
+    setReprogError(null)
+    setReprogSuccess(null)
+    try {
+      await aprobarReprogramacion(id)
+      setReprogSuccess('Reprogramación aprobada exitosamente. Se ha generado el nuevo cronograma oficial.')
+      loadReprogramaciones()
+      const updatedCredito = await getCredito(creditoId)
+      setCredito(updatedCredito)
+      onUpdated?.()
+    } catch (err) {
+      setReprogError(err.response?.data?.detail || 'Error al aprobar la reprogramación.')
+    } finally {
+      setAprobandoId(null)
+    }
+  }
+
+  function handleAbrirRechazo(id) {
+    setRechazarTargetId(id)
+    setMotivoRechazo('')
+    setModalRechazoOpen(true)
+  }
+
+  async function handleConfirmarRechazo(e) {
+    e.preventDefault()
+    if (!motivoRechazo.trim()) {
+      setReprogError('Debe especificar el motivo del rechazo.')
+      return
+    }
+    setRechazando(true)
+    try {
+      await rechazarReprogramacion(rechazarTargetId, { motivo: motivoRechazo.trim() })
+      setReprogSuccess('Solicitud de reprogramación rechazada.')
+      setModalRechazoOpen(false)
+      loadReprogramaciones()
+      onUpdated?.()
+    } catch (err) {
+      setReprogError(err.response?.data?.detail || 'Error al rechazar la reprogramación.')
+    } finally {
+      setRechazando(false)
+    }
+  }
 
   if (!open || (!credito && !loading)) return null
 
@@ -249,6 +404,24 @@ export default function CreditoDetalleModal({
               <span className="material-symbols-outlined text-[16px]">shield</span>
               <span>Garantías y Custodia (CU-W22)</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('reprogramacion')}
+              className={`px-4 py-2.5 text-xs font-bold transition-colors border-b-2 flex items-center gap-1.5 ${
+                activeTab === 'reprogramacion'
+                  ? 'border-[#064e3b] text-[#064e3b]'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">published_with_changes</span>
+              <span>Reprogramación ASFI</span>
+              {(credito?.numero_reprogramaciones > 0 || credito?.reprogramado) && (
+                <Badge variant="purple" className="!text-[9px] !py-0 !px-1.5">
+                  {credito.numero_reprogramaciones || 1}
+                </Badge>
+              )}
+            </button>
           </div>
 
           {error && (
@@ -289,6 +462,11 @@ export default function CreditoDetalleModal({
                       ) : credito?.estado_mora === 'AL_DIA' ? (
                         <Badge variant="green">AL DÍA</Badge>
                       ) : null}
+                      {(credito?.numero_reprogramaciones > 0 || credito?.reprogramado) && (
+                        <Badge variant="purple">
+                          REPROGRAMADO ({credito.numero_reprogramaciones || 1})
+                        </Badge>
+                      )}
                       <span className="font-mono text-slate-500 text-[11px]">
                         Desembolso: {formatDate(credito?.fecha_desembolso)}
                       </span>
@@ -388,6 +566,8 @@ export default function CreditoDetalleModal({
                       monedaSimbolo={sim}
                       totalSeguro={credito.total_seguro}
                       showEstado={true}
+                      tea={credito.tea}
+                      teac={credito.teac}
                     />
                   </div>
 
@@ -451,11 +631,367 @@ export default function CreditoDetalleModal({
                 <div className={activeTab === 'garantias' ? 'block' : 'hidden'}>
                   <GarantiasCreditoTab creditoId={credito.id} credito={credito} />
                 </div>
+
+                {/* ══════════════════════════════════════════════════════════════
+                    PESTAÑA 6: REPROGRAMACIÓN DE CRÉDITO (ASFI — LEY 393)
+                   ══════════════════════════════════════════════════════════════ */}
+                <div className={activeTab === 'reprogramacion' ? 'block space-y-5' : 'hidden'}>
+                  {reprogError && (
+                    <AlertBanner variant="error" onClose={() => setReprogError(null)}>
+                      {reprogError}
+                    </AlertBanner>
+                  )}
+                  {reprogSuccess && (
+                    <AlertBanner variant="success" onClose={() => setReprogSuccess(null)}>
+                      {reprogSuccess}
+                    </AlertBanner>
+                  )}
+
+                  {/* Resumen de Reprogramación */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Saldo Pendiente Capital
+                      </span>
+                      <span className="font-display font-bold text-slate-900 text-sm tabular-nums">
+                        {formatMoney(credito.saldo_pendiente, sim)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Plazo Vigente
+                      </span>
+                      <span className="font-display font-bold text-slate-900 text-sm tabular-nums">
+                        {credito.cuotas_totales || credito.plazo_meses} meses
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                        Tasa de Interés
+                      </span>
+                      <span className="font-display font-bold text-emerald-800 text-sm tabular-nums">
+                        {Number(credito.tasa_interes).toFixed(2)}% TNA
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                        N° Reprogramaciones
+                      </span>
+                      <span className="font-display font-bold text-purple-900 text-sm tabular-nums">
+                        {credito.numero_reprogramaciones ?? 0}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Formulario de Solicitud de Reprogramación */}
+                  {canManageReprog && credito.estado === 'VIGENTE' && Number(credito.saldo_pendiente) > 0 && (
+                    <div className="rounded-xl border border-purple-200 bg-purple-50/40 p-4 space-y-4">
+                      <div className="flex items-center justify-between border-b border-purple-200/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[18px] text-purple-800">
+                            published_with_changes
+                          </span>
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-purple-900">
+                            Nueva Solicitud de Reprogramación
+                          </h4>
+                        </div>
+                        <Badge variant="purple">Normativa ASFI</Badge>
+                      </div>
+
+                      <form onSubmit={handleSolicitarReprogramacion} className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField id="nuevo_plazo_meses" label="Nuevo Plazo Total (Meses) *">
+                            <Input
+                              id="nuevo_plazo_meses"
+                              type="number"
+                              min="1"
+                              placeholder="Ej. 36"
+                              value={nuevoPlazoMeses}
+                              onChange={(e) => setNuevoPlazoMeses(e.target.value)}
+                              className="tabular-nums font-semibold"
+                            />
+                          </FormField>
+
+                          <div className="flex items-end pb-0.5">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={handleSimularReprogramacion}
+                              loading={simulandoReprog}
+                              className="gap-1 text-purple-900 border-purple-300 hover:bg-purple-100"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">calculate</span>
+                              <span>Simular / Previsualizar Cronograma</span>
+                            </Button>
+                          </div>
+                        </div>
+
+                        <FormField id="motivo_reprog" label="Motivo y Justificación Técnica de la Reprogramación *">
+                          <Textarea
+                            id="motivo_reprog"
+                            rows={2}
+                            placeholder="Detalle la situación socioeconómica sobrevenida, afectación de ingresos o reestructuración pactada..."
+                            value={motivoReprog}
+                            onChange={(e) => setMotivoReprog(e.target.value)}
+                          />
+                        </FormField>
+
+                        {/* Previsualización de la Simulación si fue ejecutada */}
+                        {simulacionReprog && (
+                          <div className="rounded-lg border border-purple-300 bg-white p-3.5 space-y-3 shadow-xs">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                              <span className="font-bold text-xs text-purple-950">
+                                Previsualización de la Nueva Estructura Financiera
+                              </span>
+                              <div className="flex items-center gap-2 text-xs font-mono font-bold">
+                                {simulacionReprog.tea != null && (
+                                  <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    TEA: {Number(simulacionReprog.tea).toFixed(2)}%
+                                  </span>
+                                )}
+                                {simulacionReprog.teac != null && (
+                                  <span className="text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                                    TEAC: {Number(simulacionReprog.teac).toFixed(2)}%
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
+                              <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Saldo Capital</span>
+                                <span className="font-mono font-bold text-slate-900 text-xs">
+                                  {formatMoney(simulacionReprog.saldo_capital, sim)}
+                                </span>
+                              </div>
+                              <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Interés Diferido (1ra Cuota)</span>
+                                <span className="font-mono font-bold text-amber-800 text-xs">
+                                  {formatMoney(simulacionReprog.interes_diferido, sim)}
+                                </span>
+                                <span className="text-[9px] text-slate-400 block">No capitalizable</span>
+                              </div>
+                              <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Mora Condonada</span>
+                                <span className="font-mono font-bold text-emerald-800 text-xs">
+                                  {formatMoney(simulacionReprog.mora_condonada, sim)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {simulacionReprog.cuotas?.length > 0 && (
+                              <TablaAmortizacion
+                                cuotas={simulacionReprog.cuotas}
+                                monedaSimbolo={sim}
+                                totalCapital={simulacionReprog.total_capital}
+                                totalInteres={simulacionReprog.total_interes}
+                                totalSeguro={simulacionReprog.total_seguro}
+                                totalPagar={simulacionReprog.total_pagar}
+                                showEstado={false}
+                                tea={simulacionReprog.tea}
+                                teac={simulacionReprog.teac}
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            size="sm"
+                            loading={solicitandoReprog}
+                            className="bg-purple-800 hover:bg-purple-900 text-white gap-1.5"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">send</span>
+                            <span>Registrar Solicitud de Reprogramación</span>
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Historial de Reprogramaciones */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                        Historial de Reprogramaciones del Crédito
+                      </h4>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={loadReprogramaciones}
+                        disabled={loadingReprog}
+                        className="!py-0.5 !px-2 !text-[11px] gap-1"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">refresh</span>
+                        <span>Actualizar</span>
+                      </Button>
+                    </div>
+
+                    {loadingReprog ? (
+                      <div className="space-y-2 p-3">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
+                    ) : reprogramaciones.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400 text-xs rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                        Este crédito no registra solicitudes ni procesos de reprogramación.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                              <th className="px-3 py-2.5">ID / Fecha</th>
+                              <th className="px-3 py-2.5">Canal</th>
+                              <th className="px-3 py-2.5">Nuevo Plazo</th>
+                              <th className="px-3 py-2.5 text-right">Saldo Capital</th>
+                              <th className="px-3 py-2.5 text-right">Int. Diferido</th>
+                              <th className="px-3 py-2.5 text-right">Mora Condonada</th>
+                              <th className="px-3 py-2.5 text-center">Estado</th>
+                              <th className="px-3 py-2.5">Motivo / Resolución</th>
+                              {canManageReprog && <th className="px-3 py-2.5 text-center">Acciones</th>}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                            {reprogramaciones.map((r) => {
+                              const isSolicitada = r.estado === 'SOLICITADA'
+                              const isAprobada = r.estado === 'APROBADA'
+                              const isRechazada = r.estado === 'RECHAZADA'
+                              return (
+                                <tr key={r.id} className="hover:bg-slate-50/70">
+                                  <td className="px-3 py-2 font-bold text-slate-800">
+                                    #{r.id}
+                                    <span className="block text-[10px] text-slate-400 font-normal">
+                                      {formatDate(r.fecha_solicitud)}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-slate-700 font-sans">
+                                    {r.canal || 'VENTANILLA'}
+                                  </td>
+                                  <td className="px-3 py-2 text-slate-800">
+                                    {r.nuevo_plazo_meses} meses
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-slate-900 tabular-nums">
+                                    {formatMoney(r.saldo_capital, sim)}
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-amber-800 tabular-nums">
+                                    {formatMoney(r.interes_diferido, sim)}
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-emerald-800 tabular-nums">
+                                    {formatMoney(r.mora_condonada, sim)}
+                                  </td>
+                                  <td className="px-3 py-2 text-center font-sans">
+                                    <Badge
+                                      variant={isAprobada ? 'green' : isRechazada ? 'red' : 'amber'}
+                                      className="!text-[10px] !py-0 !px-1.5"
+                                    >
+                                      {r.estado}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-2 font-sans text-slate-600 max-w-xs truncate" title={r.motivo}>
+                                    <div>{r.motivo}</div>
+                                    {r.motivo_rechazo && (
+                                      <div className="text-rose-600 text-[10px] font-semibold">
+                                        Rechazo: {r.motivo_rechazo}
+                                      </div>
+                                    )}
+                                  </td>
+                                  {canManageReprog && (
+                                    <td className="px-3 py-2 text-center font-sans">
+                                      {isSolicitada ? (
+                                        <div className="flex items-center justify-center gap-1.5">
+                                          <Button
+                                            type="button"
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => handleAprobarReprogramacion(r.id)}
+                                            loading={aprobandoId === r.id}
+                                            className="!py-0.5 !px-2 !text-[10px] bg-emerald-700 hover:bg-emerald-800"
+                                          >
+                                            Aprobar
+                                          </Button>
+                                          <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => handleAbrirRechazo(r.id)}
+                                            className="!py-0.5 !px-2 !text-[10px] text-rose-700 border-rose-300 hover:bg-rose-50"
+                                          >
+                                            Rechazar
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <span className="text-[10px] text-slate-400">Resuelta</span>
+                                      )}
+                                    </td>
+                                  )}
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </>
             )
           )}
         </div>
       </Modal>
+
+      {/* ── Modal de Rechazo de Reprogramación ── */}
+      {modalRechazoOpen && (
+        <Modal
+          open={modalRechazoOpen}
+          onClose={() => setModalRechazoOpen(false)}
+          title="Rechazar Reprogramación de Crédito"
+          subtitle="Fundamentación del dictamen de rechazo según políticas ASFI"
+          footer={
+            <div className="flex w-full items-center justify-between">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => setModalRechazoOpen(false)}
+                disabled={rechazando}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                form="rechazo-reprog-form"
+                loading={rechazando}
+                className="bg-rose-700 hover:bg-rose-800 text-white"
+              >
+                Confirmar Rechazo
+              </Button>
+            </div>
+          }
+        >
+          <form id="rechazo-reprog-form" onSubmit={handleConfirmarRechazo} className="space-y-3 text-xs">
+            <FormField id="motivo_rechazo_input" label="Motivo del Rechazo *" required>
+              <Textarea
+                id="motivo_rechazo_input"
+                rows={3}
+                placeholder="Indique las causales técnicas o fiduciarias del rechazo..."
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                required
+              />
+            </FormField>
+          </form>
+        </Modal>
+      )}
 
       {/* ── Modal de Comprobante Oficial Imprimible ── */}
       {comprobanteModalOpen && pagoParaComprobante && (

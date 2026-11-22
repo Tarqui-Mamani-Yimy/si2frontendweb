@@ -1,16 +1,21 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import PageHeader from '../../../components/ui/PageHeader'
 import Button from '../../../components/ui/Button'
 import Badge from '../../../components/ui/Badge'
 import AlertBanner from '../../../components/ui/AlertBanner'
 import MetricCard from '../../../components/ui/MetricCard'
 import Skeleton from '../../../components/ui/Skeleton'
+import Modal from '../../../components/ui/Modal'
+import { FormField, Textarea } from '../../../components/ui/FormField'
 import CreditoDetalleModal from '../components/creditos/CreditoDetalleModal'
 import {
   listarCreditos,
   listarMora,
   actualizarMora,
   predecirMoraCartera,
+  listarReprogramaciones,
+  aprobarReprogramacion,
+  rechazarReprogramacion,
 } from '../../../core/api/creditosApi'
 import { useAuthStore, selectUser } from '../../../core/store/authStore'
 import { normalizeRole } from '../../../core/utils/roles'
@@ -94,6 +99,19 @@ export default function CarteraPage() {
   const [prediciendoMora, setPrediciendoMora] = useState(false)
   const [bannerMora, setBannerMora] = useState(null)
 
+  // ── Estado de Reprogramaciones (ASFI) ──
+  const [reprogramaciones, setReprogramaciones] = useState([])
+  const [loadingReprog, setLoadingReprog] = useState(false)
+  const [errorReprog, setErrorReprog] = useState(null)
+  const [filtroEstadoReprog, setFiltroEstadoReprog] = useState('SOLICITADA')
+  const [bannerReprog, setBannerReprog] = useState(null)
+  const [pendingReprogCount, setPendingReprogCount] = useState(0)
+  const [aprobandoId, setAprobandoId] = useState(null)
+  const [modalRechazoOpen, setModalRechazoOpen] = useState(false)
+  const [rechazarTargetId, setRechazarTargetId] = useState(null)
+  const [motivoRechazo, setMotivoRechazo] = useState('')
+  const [rechazando, setRechazando] = useState(false)
+
   // ── Modal de Detalle / Cobro / Cronograma ──
   const [selectedCreditoId, setSelectedCreditoId] = useState(null)
   const [selectedCreditoInit, setSelectedCreditoInit] = useState(null)
@@ -160,6 +178,102 @@ export default function CarteraPage() {
       isMounted = false
     }
   }, [vistaActiva, filtroEstadoMora])
+
+  const loadReprogramaciones = useCallback(async (stParam = filtroEstadoReprog) => {
+    setLoadingReprog(true)
+    setErrorReprog(null)
+    try {
+      const params = {}
+      if (stParam) params.estado = stParam
+      const data = await listarReprogramaciones(params)
+      setReprogramaciones(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setErrorReprog(err.response?.data?.detail || 'Error al cargar las solicitudes de reprogramación.')
+    } finally {
+      setLoadingReprog(false)
+    }
+  }, [filtroEstadoReprog])
+
+  // Cargar reprogramaciones cuando se activa esa pestaña
+  useEffect(() => {
+    if (vistaActiva !== 'reprogramaciones') return
+    loadReprogramaciones()
+  }, [vistaActiva, loadReprogramaciones])
+
+  // Contar pendientes al montar
+  useEffect(() => {
+    let isMounted = true
+    listarReprogramaciones({ estado: 'SOLICITADA' })
+      .then((data) => {
+        if (!isMounted) return
+        setPendingReprogCount(Array.isArray(data) ? data.length : 0)
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  async function handleAprobarReprog(id) {
+    setAprobandoId(id)
+    setBannerReprog(null)
+    try {
+      await aprobarReprogramacion(id)
+      setBannerReprog({
+        tipo: 'success',
+        mensaje: 'Reprogramación aprobada exitosamente. Se ha generado el nuevo cronograma oficial del crédito.',
+      })
+      loadReprogramaciones()
+      reloadCreditos()
+      listarReprogramaciones({ estado: 'SOLICITADA' })
+        .then((data) => setPendingReprogCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {})
+    } catch (err) {
+      setBannerReprog({
+        tipo: 'error',
+        mensaje: err.response?.data?.detail || 'Error al aprobar la reprogramación.',
+      })
+    } finally {
+      setAprobandoId(null)
+    }
+  }
+
+  function handleAbrirRechazoReprog(id) {
+    setRechazarTargetId(id)
+    setMotivoRechazo('')
+    setModalRechazoOpen(true)
+  }
+
+  async function handleConfirmarRechazoReprog(e) {
+    e.preventDefault()
+    if (!motivoRechazo.trim()) {
+      setBannerReprog({
+        tipo: 'error',
+        mensaje: 'Debe especificar el motivo del rechazo.',
+      })
+      return
+    }
+    setRechazando(true)
+    try {
+      await rechazarReprogramacion(rechazarTargetId, { motivo: motivoRechazo.trim() })
+      setBannerReprog({
+        tipo: 'success',
+        mensaje: 'Solicitud de reprogramación rechazada formalmente.',
+      })
+      setModalRechazoOpen(false)
+      loadReprogramaciones()
+      listarReprogramaciones({ estado: 'SOLICITADA' })
+        .then((data) => setPendingReprogCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {})
+    } catch (err) {
+      setBannerReprog({
+        tipo: 'error',
+        mensaje: err.response?.data?.detail || 'Error al rechazar la reprogramación.',
+      })
+    } finally {
+      setRechazando(false)
+    }
+  }
 
   async function reloadCreditos(filtrosActuales = {}) {
     setLoading(true)
@@ -317,6 +431,24 @@ export default function CarteraPage() {
           {metrics.enMora > 0 && (
             <Badge variant="red" className="!text-[10px] !py-0 !px-1.5 font-bold">
               {metrics.enMora}
+            </Badge>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setVistaActiva('reprogramaciones')}
+          className={`px-5 py-3 text-xs font-bold transition-colors border-b-2 flex items-center gap-2 ${
+            vistaActiva === 'reprogramaciones'
+              ? 'border-[#064e3b] text-[#064e3b]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">published_with_changes</span>
+          <span>Reprogramaciones (ASFI)</span>
+          {pendingReprogCount > 0 && (
+            <Badge variant="purple" className="!text-[10px] !py-0 !px-1.5 font-bold">
+              {pendingReprogCount}
             </Badge>
           )}
         </button>
@@ -548,10 +680,17 @@ export default function CarteraPage() {
                         </td>
 
                         {/* Estado */}
-                        <td className="px-4 py-3.5 text-xs text-center">
+                        <td className="px-4 py-3.5 text-xs text-center space-y-1">
                           <Badge variant={getEstadoBadgeVariant(c.estado)}>
                             {c.estado}
                           </Badge>
+                          {(c.numero_reprogramaciones > 0 || c.reprogramado) && (
+                            <span className="block">
+                              <Badge variant="purple" className="!text-[9px] !py-0 !px-1.5 whitespace-nowrap">
+                                Reprogramado ({c.numero_reprogramaciones || 1})
+                              </Badge>
+                            </span>
+                          )}
                         </td>
 
                         {/* Estado de Morosidad */}
@@ -902,6 +1041,295 @@ export default function CarteraPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+          VISTA 3: REPROGRAMACIONES DE CRÉDITO (ASFI)
+         ══════════════════════════════════════════════════════════════ */}
+      {vistaActiva === 'reprogramaciones' && (
+        <div className="space-y-6">
+          {bannerReprog && (
+            <AlertBanner
+              variant={bannerReprog.tipo === 'success' ? 'success' : 'error'}
+              onClose={() => setBannerReprog(null)}
+            >
+              {bannerReprog.mensaje}
+            </AlertBanner>
+          )}
+
+          {errorReprog && (
+            <AlertBanner variant="error" onClose={() => setErrorReprog(null)}>
+              {errorReprog}
+            </AlertBanner>
+          )}
+
+          {/* Métricas de Reprogramaciones */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricCard
+              label="Solicitudes Pendientes"
+              value={reprogramaciones.filter((r) => r.estado === 'SOLICITADA').length}
+              icon="pending_actions"
+              iconBg="bg-amber-50"
+              iconColor="text-amber-800"
+            />
+            <MetricCard
+              label="Reprogramaciones Aprobadas"
+              value={reprogramaciones.filter((r) => r.estado === 'APROBADA').length}
+              icon="task_alt"
+              iconBg="bg-emerald-50"
+              iconColor="text-emerald-700"
+            />
+            <MetricCard
+              label="Reprogramaciones Rechazadas"
+              value={reprogramaciones.filter((r) => r.estado === 'RECHAZADA').length}
+              icon="cancel"
+              iconBg="bg-rose-50"
+              iconColor="text-rose-700"
+            />
+          </div>
+
+          {/* Barra de Filtros */}
+          <div className="p-4 rounded-xl border border-[#e2e8f0] bg-white shadow-card flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-semibold text-slate-600">Filtrar por Estado:</label>
+              <select
+                value={filtroEstadoReprog}
+                onChange={(e) => {
+                  setFiltroEstadoReprog(e.target.value)
+                  loadReprogramaciones(e.target.value)
+                }}
+                className="h-9 px-3 text-xs border border-slate-200 rounded-lg bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#064e3b]"
+              >
+                <option value="SOLICITADA">SOLICITADA (Pendientes)</option>
+                <option value="APROBADA">APROBADA</option>
+                <option value="RECHAZADA">RECHAZADA</option>
+                <option value="">Todas las solicitudes</option>
+              </select>
+            </div>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => loadReprogramaciones()}
+              loading={loadingReprog}
+              className="gap-1.5"
+            >
+              <span className="material-symbols-outlined text-[16px]">refresh</span>
+              <span>Actualizar Lista</span>
+            </Button>
+          </div>
+
+          {/* Tabla de Reprogramaciones */}
+          <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white shadow-card">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[#e2e8f0] bg-[#f8f9ff]">
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    N° Solicitud / Fecha
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Crédito
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Canal / Plazo
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
+                    Saldo Capital
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
+                    Interés Diferido
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
+                    Mora Condonada
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+                    Estado
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Motivo
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e2e8f0]">
+                {loadingReprog ? (
+                  <tr>
+                    <td colSpan={9} className="p-8 text-center">
+                      <div className="space-y-3 max-w-sm mx-auto">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                      </div>
+                    </td>
+                  </tr>
+                ) : reprogramaciones.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-12 text-center text-sm text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[36px] text-slate-300">
+                          published_with_changes
+                        </span>
+                        <span className="font-semibold text-slate-600">
+                          No hay solicitudes de reprogramación {filtroEstadoReprog ? `en estado ${filtroEstadoReprog}` : ''}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          Las solicitudes pendientes pueden aprobarse o rechazarse conforme a la normativa ASFI.
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  reprogramaciones.map((r) => {
+                    const isSolicitada = r.estado === 'SOLICITADA'
+                    const isAprobada = r.estado === 'APROBADA'
+                    const isRechazada = r.estado === 'RECHAZADA'
+
+                    return (
+                      <tr key={r.id} className="transition-colors hover:bg-slate-50/80">
+                        <td className="px-4 py-3.5 text-xs font-mono">
+                          <span className="font-bold text-slate-900 block">#{r.id}</span>
+                          <span className="text-[11px] text-slate-400 font-sans block">{formatDate(r.fecha_solicitud)}</span>
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => handleVerDetalle({ id: r.credito_id }, 'reprogramacion')}
+                            className="font-mono font-bold text-[#064e3b] hover:underline cursor-pointer"
+                          >
+                            CRE-#{r.credito_id}
+                          </button>
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs">
+                          <span className="font-semibold text-slate-800 block">{r.canal || 'VENTANILLA'}</span>
+                          <span className="text-[11px] text-slate-500 block">Nuevo plazo: {r.nuevo_plazo_meses} meses</span>
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-slate-900 tabular-nums">
+                          Bs. {Number(r.saldo_capital || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-amber-800 tabular-nums">
+                          Bs. {Number(r.interes_diferido || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-emerald-800 tabular-nums">
+                          Bs. {Number(r.mora_condonada || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-center">
+                          <Badge variant={isAprobada ? 'green' : isRechazada ? 'red' : 'amber'}>
+                            {r.estado}
+                          </Badge>
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-slate-600 max-w-xs">
+                          <div className="truncate" title={r.motivo}>{r.motivo}</div>
+                          {r.motivo_rechazo && (
+                            <span className="text-[10px] text-rose-600 block font-semibold">
+                              Causa rechazo: {r.motivo_rechazo}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleVerDetalle({ id: r.credito_id }, 'reprogramacion')}
+                              className="!py-1 !px-2 !text-xs gap-1"
+                              title="Ver detalle del crédito"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">visibility</span>
+                              <span>Ver</span>
+                            </Button>
+
+                            {isSolicitada && canRefreshMora && (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => handleAprobarReprog(r.id)}
+                                  loading={aprobandoId === r.id}
+                                  className="!py-1 !px-2 !text-xs bg-emerald-700 hover:bg-emerald-800"
+                                  title="Aprobar reprogramación de crédito"
+                                >
+                                  Aprobar
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => handleAbrirRechazoReprog(r.id)}
+                                  className="!py-1 !px-2 !text-xs text-rose-700 border-rose-300 hover:bg-rose-50"
+                                  title="Rechazar solicitud con justificación"
+                                >
+                                  Rechazar
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de Rechazo de Reprogramación ── */}
+      {modalRechazoOpen && (
+        <Modal
+          open={modalRechazoOpen}
+          onClose={() => setModalRechazoOpen(false)}
+          title="Rechazar Reprogramación de Crédito"
+          subtitle="Fundamentación del dictamen de rechazo según políticas ASFI"
+          footer={
+            <div className="flex w-full items-center justify-between">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => setModalRechazoOpen(false)}
+                disabled={rechazando}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                form="rechazo-reprog-cartera-form"
+                loading={rechazando}
+                className="bg-rose-700 hover:bg-rose-800 text-white"
+              >
+                Confirmar Rechazo
+              </Button>
+            </div>
+          }
+        >
+          <form id="rechazo-reprog-cartera-form" onSubmit={handleConfirmarRechazoReprog} className="space-y-3 text-xs">
+            <FormField id="motivo_rechazo_cartera_input" label="Motivo del Rechazo *" required>
+              <Textarea
+                id="motivo_rechazo_cartera_input"
+                rows={3}
+                placeholder="Indique las causales técnicas o fiduciarias del rechazo..."
+                value={motivoRechazo}
+                onChange={(e) => setMotivoRechazo(e.target.value)}
+                required
+              />
+            </FormField>
+          </form>
+        </Modal>
       )}
 
       {/* ── Modal de Detalle, Cronograma, Cobro e Historial ── */}
