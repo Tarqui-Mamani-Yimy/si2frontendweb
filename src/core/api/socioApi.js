@@ -74,6 +74,17 @@ export async function exportExtractoCredito(creditoId, params = {}) {
 }
 
 /**
+ * Get amortization schedule with totals for a credit.
+ * GET /api/v1/socio/creditos/{id}/cronograma
+ * @param {number} creditoId
+ * @returns {Promise<object>}
+ */
+export async function getCronogramaCredito(creditoId) {
+  const { data } = await client.get(`/socio/creditos/${creditoId}/cronograma`)
+  return data
+}
+
+/**
  * Get socio dashboard summary.
  * GET /api/v1/dashboard/socio
  * @returns {Promise<object>}

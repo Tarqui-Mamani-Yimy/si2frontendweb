@@ -106,3 +106,25 @@ export async function ampliarPlazoReclamo(id, payload) {
   const { data } = await client.post(`/reclamos/${id}/ampliar`, payload)
   return data
 }
+
+/**
+ * Listar reclamos propios del socio autenticado (Socio).
+ * GET /api/v1/socio/reclamos
+ * @returns {Promise<Array<object>>}
+ */
+export async function getMisReclamos() {
+  const { data } = await client.get('/socio/reclamos')
+  return data
+}
+
+/**
+ * Registrar conformidad o escalamiento a ASFI de un reclamo (Socio).
+ * POST /api/v1/socio/reclamos/{id}/conformidad
+ * @param {number|string} id
+ * @param {{ conforme: boolean, motivo?: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function registrarConformidad(id, payload) {
+  const { data } = await client.post(`/socio/reclamos/${id}/conformidad`, payload)
+  return data
+}

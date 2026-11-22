@@ -11,6 +11,7 @@ import {
   formatTipoAmortizacion,
   formatTipoCredito,
   getExtractoCredito,
+  getCronogramaCredito,
   exportExtractoCredito,
   getMisCreditos,
 } from '../../../core/api/socioApi'
@@ -46,6 +47,7 @@ export default function MisCreditosPage() {
   // Selected credit for extracto
   const [selectedCreditoId, setSelectedCreditoId] = useState(urlCreditId ? Number(urlCreditId) : null)
   const [extracto, setExtracto] = useState(null)
+  const [cronograma, setCronograma] = useState(null)
   const [loadingExtracto, setLoadingExtracto] = useState(false)
   const [extractoError, setExtractoError] = useState(null)
   const [desde, setDesde] = useState('')
@@ -101,11 +103,17 @@ export default function MisCreditosPage() {
   useEffect(() => {
     if (selectedCreditoId) {
       loadExtracto(selectedCreditoId, desde, hasta)
+      getCronogramaCredito(selectedCreditoId)
+        .then((data) => setCronograma(data))
+        .catch(() => setCronograma(null))
+    } else {
+      setCronograma(null)
     }
   }, [selectedCreditoId, loadExtracto])
 
   function handleSelectCredito(creditoId) {
     setSelectedCreditoId(creditoId)
+    setCronograma(null)
     setDesde('')
     setHasta('')
   }
@@ -113,6 +121,7 @@ export default function MisCreditosPage() {
   function handleBackToList() {
     setSelectedCreditoId(null)
     setExtracto(null)
+    setCronograma(null)
     navigate('/socio/mis-creditos')
   }
 
@@ -530,6 +539,53 @@ export default function MisCreditosPage() {
                       )
                     })}
                   </tbody>
+                  {(cronograma || cuotas.length > 0) && (
+                    <tfoot>
+                      <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold font-mono text-slate-900">
+                        <td colSpan={2} className="py-2.5 px-3 uppercase text-[11px] tracking-wider font-sans">
+                          Totales
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          {formatMoney(
+                            cronograma?.total_capital ??
+                              cuotas
+                                .filter((c) => c.estado !== 'REPROGRAMADA')
+                                .reduce((acc, c) => acc + Number(c.capital || 0), 0),
+                            curSim,
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          {formatMoney(
+                            cronograma?.total_interes ??
+                              cuotas
+                                .filter((c) => c.estado !== 'REPROGRAMADA')
+                                .reduce((acc, c) => acc + Number(c.interes || 0), 0),
+                            curSim,
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          {formatMoney(
+                            cronograma?.total_seguro ??
+                              cuotas
+                                .filter((c) => c.estado !== 'REPROGRAMADA')
+                                .reduce((acc, c) => acc + Number(c.seguro || 0), 0),
+                            curSim,
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-[#006c49]">
+                          {formatMoney(
+                            cronograma?.total_pagar ??
+                              cuotas
+                                .filter((c) => c.estado !== 'REPROGRAMADA')
+                                .reduce((acc, c) => acc + Number(c.monto_total || 0), 0),
+                            curSim,
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-400">—</td>
+                        <td className="py-2.5 px-3 text-center text-slate-400">—</td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             </Card>

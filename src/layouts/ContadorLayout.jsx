@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: 'Tipos de Cambio', path: '/contador/tipos-cambio' },
   { label: 'Parámetros Contables', path: '/contador/parametros-contables' },
   { label: 'Comité', path: '/contador/comite' },
+  { label: 'Reprogramaciones', path: '/contador/reprogramaciones' },
   { label: 'Reportes', path: '/contador/reportes' },
   { label: 'Feedback de clientes', path: '/contador/feedback' },
   { label: 'Informes ASFI', path: '/contador/informes-asfi', modulo: 'informes_asfi' },

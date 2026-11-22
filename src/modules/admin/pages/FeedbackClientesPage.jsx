@@ -9,6 +9,7 @@ import DataTable from '../../../components/ui/DataTable'
 import { getApiErrorMessage } from '../../../core/api/errors'
 import {
   SERVICIOS_FEEDBACK,
+  CANALES_FEEDBACK,
   getFeedbackEstadisticas,
   getFeedbackList,
 } from '../../../core/api/feedbackApi'
@@ -49,6 +50,7 @@ function formatDate(isoString) {
 export default function FeedbackClientesPage() {
   const [servicio, setServicio] = useState('')
   const [calificacion, setCalificacion] = useState('')
+  const [canal, setCanal] = useState('')
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
 
@@ -84,16 +86,18 @@ export default function FeedbackClientesPage() {
     loadData({
       servicio: servicio || undefined,
       calificacion: calificacion ? Number(calificacion) : undefined,
+      canal: canal || undefined,
       desde: desde || undefined,
       hasta: hasta || undefined,
     })
-  }, [loadData, servicio, calificacion, desde, hasta])
+  }, [loadData, servicio, calificacion, canal, desde, hasta])
 
   function handleFilterSubmit(e) {
     e.preventDefault()
     loadData({
       servicio: servicio || undefined,
       calificacion: calificacion ? Number(calificacion) : undefined,
+      canal: canal || undefined,
       desde: desde || undefined,
       hasta: hasta || undefined,
     })
@@ -102,6 +106,7 @@ export default function FeedbackClientesPage() {
   function handleResetFilters() {
     setServicio('')
     setCalificacion('')
+    setCanal('')
     setDesde('')
     setHasta('')
   }
@@ -204,7 +209,7 @@ export default function FeedbackClientesPage() {
       {/* Barra de Filtros */}
       <Card className="p-4 sm:p-5">
         <form onSubmit={handleFilterSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Filtro Servicio */}
             <div className="space-y-1">
               <label
@@ -248,6 +253,28 @@ export default function FeedbackClientesPage() {
                 <option value="3">⭐⭐⭐ (3 estrellas)</option>
                 <option value="2">⭐⭐ (2 estrellas)</option>
                 <option value="1">⭐ (1 estrella)</option>
+              </select>
+            </div>
+
+            {/* Filtro Canal */}
+            <div className="space-y-1">
+              <label
+                htmlFor="filtro-canal"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
+              >
+                Canal
+              </label>
+              <select
+                id="filtro-canal"
+                value={canal}
+                onChange={(e) => setCanal(e.target.value)}
+                className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs text-slate-800 outline-none focus:border-[#006c49] focus:bg-white"
+              >
+                {CANALES_FEEDBACK.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
             </div>
 

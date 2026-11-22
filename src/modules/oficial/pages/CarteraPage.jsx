@@ -78,6 +78,13 @@ export default function CarteraPage() {
     roleNorm === 'admin' ||
     roleNorm === 'superadmin'
 
+  const canReadReprogramaciones =
+    roleNorm === 'oficial_credito' ||
+    roleNorm === 'oficial' ||
+    roleNorm === 'administrador' ||
+    roleNorm === 'admin' ||
+    roleNorm === 'superadmin'
+
   // Pestaña principal de la página: 'general' | 'mora'
   const [vistaActiva, setVistaActiva] = useState('general')
 
@@ -196,12 +203,13 @@ export default function CarteraPage() {
 
   // Cargar reprogramaciones cuando se activa esa pestaña
   useEffect(() => {
-    if (vistaActiva !== 'reprogramaciones') return
+    if (!canReadReprogramaciones || vistaActiva !== 'reprogramaciones') return
     loadReprogramaciones()
-  }, [vistaActiva, loadReprogramaciones])
+  }, [canReadReprogramaciones, vistaActiva, loadReprogramaciones])
 
   // Contar pendientes al montar
   useEffect(() => {
+    if (!canReadReprogramaciones) return
     let isMounted = true
     listarReprogramaciones({ estado: 'SOLICITADA' })
       .then((data) => {
@@ -212,7 +220,7 @@ export default function CarteraPage() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [canReadReprogramaciones])
 
   async function handleAprobarReprog(id) {
     setAprobandoId(id)
@@ -435,23 +443,25 @@ export default function CarteraPage() {
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={() => setVistaActiva('reprogramaciones')}
-          className={`px-5 py-3 text-xs font-bold transition-colors border-b-2 flex items-center gap-2 ${
-            vistaActiva === 'reprogramaciones'
-              ? 'border-[#064e3b] text-[#064e3b]'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[18px]">published_with_changes</span>
-          <span>Reprogramaciones (ASFI)</span>
-          {pendingReprogCount > 0 && (
-            <Badge variant="purple" className="!text-[10px] !py-0 !px-1.5 font-bold">
-              {pendingReprogCount}
-            </Badge>
-          )}
-        </button>
+        {canReadReprogramaciones && (
+          <button
+            type="button"
+            onClick={() => setVistaActiva('reprogramaciones')}
+            className={`px-5 py-3 text-xs font-bold transition-colors border-b-2 flex items-center gap-2 ${
+              vistaActiva === 'reprogramaciones'
+                ? 'border-[#064e3b] text-[#064e3b]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">published_with_changes</span>
+            <span>Reprogramaciones (ASFI)</span>
+            {pendingReprogCount > 0 && (
+              <Badge variant="purple" className="!text-[10px] !py-0 !px-1.5 font-bold">
+                {pendingReprogCount}
+              </Badge>
+            )}
+          </button>
+        )}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
@@ -1046,7 +1056,7 @@ export default function CarteraPage() {
       {/* ══════════════════════════════════════════════════════════════
           VISTA 3: REPROGRAMACIONES DE CRÉDITO (ASFI)
          ══════════════════════════════════════════════════════════════ */}
-      {vistaActiva === 'reprogramaciones' && (
+      {canReadReprogramaciones && vistaActiva === 'reprogramaciones' && (
         <div className="space-y-6">
           {bannerReprog && (
             <AlertBanner

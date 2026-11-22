@@ -85,11 +85,13 @@ import EstadoResultadosPage from '../modules/contador/pages/EstadoResultadosPage
 import SocioDashboardPage from '../modules/socio/pages/DashboardPage'
 import SocioMiCuentaPage from '../modules/socio/pages/MiCuentaPage'
 import SocioMisCreditosPage from '../modules/socio/pages/MisCreditosPage'
+import SocioMisReclamosPage from '../modules/socio/pages/MisReclamosPage'
 import CalificarServicioPage from '../modules/socio/pages/CalificarServicioPage'
 import FeedbackClientesPage from '../modules/admin/pages/FeedbackClientesPage'
 
 // ── Shared / DPF ──────────────────────────────────────────────
 import PlazoFijoPage from '../shared/components/dpf/PlazoFijoPage'
+import ReprogramacionesConsultaPage from '../modules/shared/pages/ReprogramacionesConsultaPage'
 
 function RootRoute() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
@@ -250,6 +252,7 @@ export default function AppRouter() {
             <Route path="tipos-cambio" element={<TiposCambioPage />} />
             <Route path="parametros-contables" element={<ParametrosContablesPage />} />
             <Route path="comite" element={<ComitePage />} />
+            <Route path="reprogramaciones" element={<ReprogramacionesConsultaPage />} />
             <Route path="reportes" element={<ContadorReportesPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
             <Route path="reclamos" element={<ReclamosPage />} />
@@ -272,6 +275,7 @@ export default function AppRouter() {
             <Route path="dashboard" element={<AsesorDashboardPage />} />
             <Route path="socios" element={<AsesorSociosPage />} />
             <Route path="creditos" element={<AsesorCreditosPage />} />
+            <Route path="reprogramaciones" element={<ReprogramacionesConsultaPage />} />
             <Route path="caja" element={<AsesorCajaPage />} />
             <Route path="feedback" element={<FeedbackClientesPage />} />
             <Route path="reclamos" element={<ReclamosPage />} />
@@ -287,6 +291,7 @@ export default function AppRouter() {
               <Route path="mi-cuenta" element={<SocioMiCuentaPage />} />
               <Route path="mis-creditos" element={<SocioMisCreditosPage />} />
               <Route path="mis-creditos/:id" element={<SocioMisCreditosPage />} />
+              <Route path="reclamos" element={<SocioMisReclamosPage />} />
               <Route path="calificar" element={<CalificarServicioPage />} />
               <Route
                 path="notificaciones"

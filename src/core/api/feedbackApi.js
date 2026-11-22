@@ -14,6 +14,12 @@ export const SERVICIOS_FEEDBACK = [
   { id: 'OTRO', label: 'Otro' },
 ]
 
+export const CANALES_FEEDBACK = [
+  { id: '', label: 'Todos' },
+  { id: 'WEB', label: 'Web' },
+  { id: 'MOVIL', label: 'Móvil' },
+]
+
 /**
  * Submit feedback / rating for a service (Socio).
  * POST /api/v1/feedback
@@ -60,6 +66,7 @@ export async function getFeedbackList(params = {}) {
   const cleanParams = {}
   if (params.servicio) cleanParams.servicio = params.servicio
   if (params.calificacion) cleanParams.calificacion = params.calificacion
+  if (params.canal) cleanParams.canal = params.canal
   if (params.desde) cleanParams.desde = params.desde
   if (params.hasta) cleanParams.hasta = params.hasta
   if (params.limit) cleanParams.limit = params.limit
@@ -74,6 +81,7 @@ export async function getFeedbackList(params = {}) {
  * @param {{
  *   servicio?: string,
  *   calificacion?: number,
+ *   canal?: string,
  *   desde?: string,
  *   hasta?: string
  * }} [params]
@@ -91,6 +99,7 @@ export async function getFeedbackEstadisticas(params = {}) {
   const cleanParams = {}
   if (params.servicio) cleanParams.servicio = params.servicio
   if (params.calificacion) cleanParams.calificacion = params.calificacion
+  if (params.canal) cleanParams.canal = params.canal
   if (params.desde) cleanParams.desde = params.desde
   if (params.hasta) cleanParams.hasta = params.hasta
 
