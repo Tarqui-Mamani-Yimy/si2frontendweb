@@ -93,3 +93,16 @@ export async function responderReclamo(id, payload) {
   const { data } = await client.post(`/reclamos/${id}/responder`, payload)
   return data
 }
+
+/**
+ * Ampliar el plazo legal de respuesta del reclamo (Staff).
+ * REGISTRADO | EN_ATENCION → nueva fecha límite y motivo
+ * POST /api/v1/reclamos/{id}/ampliar
+ * @param {number|string} id
+ * @param {{ nueva_fecha: string, motivo: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function ampliarPlazoReclamo(id, payload) {
+  const { data } = await client.post(`/reclamos/${id}/ampliar`, payload)
+  return data
+}

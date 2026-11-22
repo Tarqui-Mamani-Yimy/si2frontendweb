@@ -15,6 +15,7 @@ import {
   crearReclamo,
   atenderReclamo,
   responderReclamo,
+  ampliarPlazoReclamo,
   TIPOS_RECLAMO,
   ESTADOS_RECLAMO,
 } from '../../../core/api/reclamosApi'
@@ -88,6 +89,7 @@ export default function ReclamosPage() {
   const [nuevoModalOpen, setNuevoModalOpen] = useState(false)
   const [detalleModalOpen, setDetalleModalOpen] = useState(false)
   const [responderModalOpen, setResponderModalOpen] = useState(false)
+  const [ampliarModalOpen, setAmpliarModalOpen] = useState(false)
 
   // Reclamo seleccionado para detalle o respuesta
   const [selectedReclamo, setSelectedReclamo] = useState(null)
@@ -109,6 +111,11 @@ export default function ReclamosPage() {
   const [respuestaProcedente, setRespuestaProcedente] = useState(true)
   const [respondiendo, setRespondiendo] = useState(false)
   const [atendiendoId, setAtendiendoId] = useState(null)
+
+  // Estado para ampliar plazo
+  const [nuevaFechaAmpliacion, setNuevaFechaAmpliacion] = useState('')
+  const [motivoAmpliacion, setMotivoAmpliacion] = useState('')
+  const [ampliando, setAmpliando] = useState(false)
 
   const debounceSocioRef = useRef(null)
 
@@ -300,6 +307,47 @@ export default function ReclamosPage() {
     }
   }
 
+  function handleOpenAmpliar(reclamo) {
+    setSelectedReclamo(reclamo)
+    setNuevaFechaAmpliacion('')
+    setMotivoAmpliacion('')
+    setAmpliarModalOpen(true)
+  }
+
+  async function handleAmpliarSubmit(e) {
+    e.preventDefault()
+    if (!nuevaFechaAmpliacion) {
+      setError('Debe seleccionar la nueva fecha límite de respuesta.')
+      return
+    }
+    if (!motivoAmpliacion.trim()) {
+      setError('Debe ingresar el motivo que justifica la ampliación.')
+      return
+    }
+
+    setAmpliando(true)
+    setError(null)
+    try {
+      const res = await ampliarPlazoReclamo(selectedReclamo.id, {
+        nueva_fecha: nuevaFechaAmpliacion,
+        motivo: motivoAmpliacion.trim(),
+      })
+      setSuccessMessage(
+        `Plazo del reclamo ${res.numero_reclamo || selectedReclamo.numero_reclamo || ''} ampliado al ${formatDate(res.fecha_limite_respuesta)}.${res.notificado_asfi ? ' (Comunicado a ASFI)' : ''}`,
+      )
+      setAmpliarModalOpen(false)
+      loadData()
+      if (detalleModalOpen) {
+        const updated = await getReclamo(selectedReclamo.id)
+        setSelectedReclamo(updated)
+      }
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Error al ampliar el plazo del reclamo.'))
+    } finally {
+      setAmpliando(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -486,6 +534,7 @@ export default function ReclamosPage() {
                 const isRegistrado = r.estado === 'REGISTRADO'
                 const isEnAtencion = r.estado === 'EN_ATENCION'
                 const isRespondible = isRegistrado || isEnAtencion
+                const isAmpliable = isRespondible && !r.vencido
                 const socioNombre = r.socio || r.socio_nombre || 'Socio #' + (r.socio_id || '—')
 
                 return (
@@ -514,16 +563,37 @@ export default function ReclamosPage() {
 
                     <td className="px-4 py-3.5">
                       <span className="text-slate-800 block">{formatDate(r.fecha_registro)}</span>
-                      <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span className="text-[10px] text-slate-500 font-mono">
                           Límite: {formatDate(r.fecha_limite_respuesta)}
                         </span>
+                        {r.ampliaciones > 0 && (
+                          <span
+                            className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1 py-0.5 rounded border border-blue-200"
+                            title={r.motivo_ampliacion ? `Motivo: ${r.motivo_ampliacion}` : undefined}
+                          >
+                            +{r.ampliaciones} amp.
+                          </span>
+                        )}
+                        {r.notificado_asfi && (
+                          <Badge variant="purple" className="!text-[9px] !py-0 !px-1 font-bold">
+                            Comunicado a ASFI
+                          </Badge>
+                        )}
                         {r.vencido && (
                           <Badge variant="red" className="!text-[9px] !py-0 !px-1 font-bold">
                             Vencido
                           </Badge>
                         )}
                       </div>
+                      {r.motivo_ampliacion && (
+                        <span
+                          className="text-[10px] text-slate-400 italic block truncate max-w-[200px]"
+                          title={`Motivo ampliación: ${r.motivo_ampliacion}`}
+                        >
+                          Motivo: {r.motivo_ampliacion}
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-3.5 text-center">
@@ -547,6 +617,19 @@ export default function ReclamosPage() {
                           <span className="material-symbols-outlined text-[15px]">visibility</span>
                           <span>Ver</span>
                         </Button>
+
+                        {isAmpliable && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenAmpliar(r)}
+                            className="!py-1 !px-2 !text-xs text-blue-700 border-blue-300 hover:bg-blue-50"
+                            title="Ampliar plazo de respuesta según normativa ASFI"
+                          >
+                            Ampliar
+                          </Button>
+                        )}
 
                         {isRegistrado && (
                           <Button
@@ -760,6 +843,18 @@ export default function ReclamosPage() {
               </Button>
 
               <div className="flex items-center gap-2">
+                {((selectedReclamo?.estado === 'REGISTRADO' || selectedReclamo?.estado === 'EN_ATENCION') && !selectedReclamo?.vencido) && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleOpenAmpliar(selectedReclamo)}
+                    className="text-blue-700 border-blue-300 hover:bg-blue-50"
+                  >
+                    Ampliar Plazo
+                  </Button>
+                )}
+
                 {selectedReclamo?.estado === 'REGISTRADO' && (
                   <Button
                     type="button"
@@ -858,6 +953,35 @@ export default function ReclamosPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Información de Ampliaciones de Plazo */}
+              {selectedReclamo.ampliaciones > 0 && (
+                <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+                  <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-blue-900 block">
+                      Ampliación de Plazo de Respuesta (RNSF Libro 4° Art. 3)
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded">
+                        {selectedReclamo.ampliaciones} {selectedReclamo.ampliaciones === 1 ? 'ampliación' : 'ampliaciones'}
+                      </span>
+                      {selectedReclamo.notificado_asfi && (
+                        <Badge variant="purple" className="font-bold">
+                          Comunicado a ASFI
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {selectedReclamo.motivo_ampliacion && (
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-500 block">Motivo de la Ampliación</span>
+                      <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">
+                        {selectedReclamo.motivo_ampliacion}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Descripción del Reclamo */}
               <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1.5">
@@ -978,6 +1102,88 @@ export default function ReclamosPage() {
               />
               <p className="text-[11px] text-slate-400 mt-1">
                 Esta respuesta se notificará al socio en su aplicación móvil y quedará registrada en el Punto de Reclamo.
+              </p>
+            </FormField>
+          </form>
+        </Modal>
+      )}
+
+      {/* ── Modal: Ampliar Plazo de Reclamo ── */}
+      {ampliarModalOpen && (
+        <Modal
+          open={ampliarModalOpen}
+          onClose={() => setAmpliarModalOpen(false)}
+          title={`Ampliar Plazo: ${selectedReclamo?.numero_reclamo || ''}`}
+          subtitle="Ampliación formal del plazo de respuesta según Circular ASFI / RNSF Libro 4°, Título I, Cap. I, Art. 3"
+          footer={
+            <div className="flex w-full items-center justify-between">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => setAmpliarModalOpen(false)}
+                disabled={ampliando}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                form="ampliar-plazo-form"
+                loading={ampliando}
+                className="bg-blue-700 hover:bg-blue-800 text-white"
+              >
+                Guardar Ampliación
+              </Button>
+            </div>
+          }
+        >
+          <form id="ampliar-plazo-form" onSubmit={handleAmpliarSubmit} className="space-y-4 text-xs">
+            <div className="p-3 rounded-lg border border-slate-200 bg-slate-50 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Plazo Límite Actual</span>
+                <span className="font-mono font-bold text-slate-800">
+                  {formatDate(selectedReclamo?.fecha_limite_respuesta)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-[10px] uppercase font-bold text-slate-400">Ampliaciones realizadas</span>
+                <span className="font-mono font-bold text-slate-800">
+                  {selectedReclamo?.ampliaciones || 0}
+                </span>
+              </div>
+              {Number(selectedReclamo?.ampliaciones || 0) >= 1 && (
+                <div className="mt-1 text-[11px] text-purple-700 font-semibold bg-purple-50 p-2 rounded border border-purple-200">
+                  ⚠️ Esta ampliación adicional activará la notificación formal a la ASFI (RNSF Libro 4° Art. 3).
+                </div>
+              )}
+            </div>
+
+            <FormField id="ampliar_nueva_fecha" label="Nueva Fecha Límite de Respuesta *" required>
+              <Input
+                id="ampliar_nueva_fecha"
+                type="date"
+                value={nuevaFechaAmpliacion}
+                onChange={(e) => setNuevaFechaAmpliacion(e.target.value)}
+                required
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Debe ser posterior a la fecha límite actual. La primera ampliación permite hasta 10 días hábiles desde la recepción; ampliaciones adicionales permiten hasta 5 días hábiles.
+              </p>
+            </FormField>
+
+            <FormField id="ampliar_motivo" label="Motivo Justificado de la Ampliación *" required>
+              <Textarea
+                id="ampliar_motivo"
+                rows={4}
+                placeholder="Indique las razones de orden técnico o requerimiento de información que motivan la ampliación..."
+                value={motivoAmpliacion}
+                onChange={(e) => setMotivoAmpliacion(e.target.value)}
+                required
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Este motivo debe ser comunicado al socio antes del vencimiento del plazo original.
               </p>
             </FormField>
           </form>

@@ -1141,6 +1141,12 @@ export default function CarteraPage() {
                     Interés Diferido
                   </th>
                   <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
+                    Interés Corrido
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
+                    Seguro Diferido
+                  </th>
+                  <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">
                     Mora Condonada
                   </th>
                   <th className="px-4 py-3.5 font-table-header text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-center">
@@ -1157,7 +1163,7 @@ export default function CarteraPage() {
               <tbody className="divide-y divide-[#e2e8f0]">
                 {loadingReprog ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center">
+                    <td colSpan={11} className="p-8 text-center">
                       <div className="space-y-3 max-w-sm mx-auto">
                         <Skeleton className="h-6 w-full" />
                         <Skeleton className="h-6 w-full" />
@@ -1166,7 +1172,7 @@ export default function CarteraPage() {
                   </tr>
                 ) : reprogramaciones.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-sm text-slate-400">
+                    <td colSpan={11} className="px-6 py-12 text-center text-sm text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span className="material-symbols-outlined text-[36px] text-slate-300">
                           published_with_changes
@@ -1214,6 +1220,14 @@ export default function CarteraPage() {
 
                         <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-amber-800 tabular-nums">
                           Bs. {Number(r.interes_diferido || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-orange-800 tabular-nums">
+                          Bs. {Number(r.interes_corrido || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-blue-800 tabular-nums">
+                          Bs. {Number(r.seguro_diferido || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 })}
                         </td>
 
                         <td className="px-4 py-3.5 text-xs text-right font-mono font-bold text-emerald-800 tabular-nums">

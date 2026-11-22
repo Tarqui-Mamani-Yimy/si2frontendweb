@@ -761,7 +761,7 @@ export default function CreditoDetalleModal({
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center text-xs">
                               <div className="p-2 bg-slate-50 rounded border border-slate-200">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Saldo Capital</span>
                                 <span className="font-mono font-bold text-slate-900 text-xs">
@@ -769,11 +769,25 @@ export default function CreditoDetalleModal({
                                 </span>
                               </div>
                               <div className="p-2 bg-slate-50 rounded border border-slate-200">
-                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Interés Diferido (1ra Cuota)</span>
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Interés Diferido</span>
                                 <span className="font-mono font-bold text-amber-800 text-xs">
                                   {formatMoney(simulacionReprog.interes_diferido, sim)}
                                 </span>
-                                <span className="text-[9px] text-slate-400 block">No capitalizable</span>
+                                <span className="text-[9px] text-slate-400 block">1ra Cuota</span>
+                              </div>
+                              <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Interés Corrido</span>
+                                <span className="font-mono font-bold text-orange-800 text-xs">
+                                  {formatMoney(simulacionReprog.interes_corrido, sim)}
+                                </span>
+                                <span className="text-[9px] text-slate-400 block">Al corte</span>
+                              </div>
+                              <div className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <span className="text-[10px] uppercase font-bold text-slate-400 block">Seguro Diferido</span>
+                                <span className="font-mono font-bold text-blue-800 text-xs">
+                                  {formatMoney(simulacionReprog.seguro_diferido, sim)}
+                                </span>
+                                <span className="text-[9px] text-slate-400 block">1ra Cuota</span>
                               </div>
                               <div className="p-2 bg-slate-50 rounded border border-slate-200">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Mora Condonada</span>
@@ -853,6 +867,8 @@ export default function CreditoDetalleModal({
                               <th className="px-3 py-2.5">Nuevo Plazo</th>
                               <th className="px-3 py-2.5 text-right">Saldo Capital</th>
                               <th className="px-3 py-2.5 text-right">Int. Diferido</th>
+                              <th className="px-3 py-2.5 text-right">Int. Corrido</th>
+                              <th className="px-3 py-2.5 text-right">Seg. Diferido</th>
                               <th className="px-3 py-2.5 text-right">Mora Condonada</th>
                               <th className="px-3 py-2.5 text-center">Estado</th>
                               <th className="px-3 py-2.5">Motivo / Resolución</th>
@@ -883,6 +899,12 @@ export default function CreditoDetalleModal({
                                   </td>
                                   <td className="px-3 py-2 text-right text-amber-800 tabular-nums">
                                     {formatMoney(r.interes_diferido, sim)}
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-orange-800 tabular-nums">
+                                    {formatMoney(r.interes_corrido, sim)}
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-blue-800 tabular-nums">
+                                    {formatMoney(r.seguro_diferido, sim)}
                                   </td>
                                   <td className="px-3 py-2 text-right text-emerald-800 tabular-nums">
                                     {formatMoney(r.mora_condonada, sim)}
